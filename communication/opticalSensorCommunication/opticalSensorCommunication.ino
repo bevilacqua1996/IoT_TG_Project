@@ -13,20 +13,15 @@ String rssi = "RSSI --";
 String packSize = "--";
 String packet ;
 String messageSent = "";
+String message = "";
+
+boolean canSend = false;
 
 const String DETECTADO_ = "PRESENCA DETECTADA!";
 const String NAO_DETECTADO_ = "NADA DETECTADO...";
 
 const int digital_pin = 23; // possible digital Input for LoRa32
 const int internal_LED = 25; // internal LED for LoRa32
-
-
-void logo()
-{
-  Heltec.display->clear();
-  Heltec.display->drawXbm(0,5,logo_width,logo_height,logo_bits);
-  Heltec.display->display();
-}
 
 void setup()
 {
@@ -48,8 +43,25 @@ void setup()
   pinMode(internal_LED, OUTPUT);
 }
 
-void opticalSensorReading() {
-  String message;
+void loop()
+{
+  Heltec.display->clear();
+  Heltec.display->setTextAlignment(TEXT_ALIGN_LEFT);
+  Heltec.display->setFont(ArialMT_Plain_10);
+  
+  Heltec.display->drawString(0, 0, "Sending packet: ");
+  Heltec.display->drawString(90, 0, String(counter));
+  Heltec.display->display();
+
+  canSend = opticalSensorChanged();
+
+  if(canSend) {
+    sendPacket(message);
+  }
+
+}
+
+boolean opticalSensorChanged() {
   if(digitalRead(digital_pin) == HIGH){
     digitalWrite(internal_LED, LOW); //turn off the led
     message = NAO_DETECTADO_;
@@ -60,8 +72,10 @@ void opticalSensorReading() {
 
   if(!message.equals(messageSent)) {
     messageSent = message;
-    sendPacket(message);
+    return true;
   }
+
+  return false;
 
 }
 
@@ -76,15 +90,9 @@ void sendPacket(String message) {
   counter++;
 }
 
-void loop()
+void logo()
 {
   Heltec.display->clear();
-  Heltec.display->setTextAlignment(TEXT_ALIGN_LEFT);
-  Heltec.display->setFont(ArialMT_Plain_10);
-  
-  Heltec.display->drawString(0, 0, "Sending packet: ");
-  Heltec.display->drawString(90, 0, String(counter));
+  Heltec.display->drawXbm(0,5,logo_width,logo_height,logo_bits);
   Heltec.display->display();
-
-  opticalSensorReading();
 }
