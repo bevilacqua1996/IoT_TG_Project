@@ -15,7 +15,7 @@ GND   GND
 23    D0
 ```
 
-Para mais informações a respeito do sensor TCRT5000 e sua integração com ESP32, pode-se acessar o [link]:https://diyi0t.com/tcrt5000-line-tracking-module-arduino-esp8266-esp32/ .
+Para mais informações a respeito do sensor TCRT5000 e sua integração com ESP32, pode-se acessar o [link](https://diyi0t.com/tcrt5000-line-tracking-module-arduino-esp8266-esp32/).
 
 Além disso, para um maior detalhamento a respeito da pinagem do *LoRa32*, abaixo pode-se observar o diagrama de detalhamento da pinagem do dispositivo.
 
