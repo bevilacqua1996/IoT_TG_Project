@@ -10,10 +10,13 @@ Para montagem apropriada do circuito, sugere-se que se siga as seguintes pinagen
 
 ```
 LoRa  TCRT5000
-3v3   VCC
-GND   GND
-23    D0
+3v3     VCC
+GND     GND
+23      D0
+0       A0
 ```
+
+Não se faz necessário o uso do pino A0 do sensor óptico, pois neste caso iremos apenas utilizar o OUTPUT digital do sensor que nos permite inferir se foi detectado movimento ou não.
 
 Para mais informações a respeito do sensor TCRT5000 e sua integração com ESP32, pode-se acessar o [link](https://diyi0t.com/tcrt5000-line-tracking-module-arduino-esp8266-esp32/).
 
