@@ -1,14 +1,14 @@
 package com.sensor.data.model;
 
-public class SensorData {
+public class SensorDataDocument {
 	
 	private long id;
 	private int rpm;
 	
-	public SensorData() {
+	public SensorDataDocument() {
 	}
 	
-	public SensorData(long id, int rpm) {
+	public SensorDataDocument(long id, int rpm) {
 		this.id = id;
 		this.rpm = rpm;
 	}
