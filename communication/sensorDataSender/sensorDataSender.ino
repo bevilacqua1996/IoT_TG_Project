@@ -1,23 +1,21 @@
 /*
- * Este é um exemplo de comunicação LoRa utilizando a 
- * leitura de dados do sensor óptico TCRT5000.
+ * Camada de comunicação LoRa e API
+ * 
+ * Função: Sender, envio de dados para LoRa receiver
 */
 
 #include "heltec.h"
 #include "images.h"
+#include "opticalSensorReading.h"
 
 #define BAND    915E6  //you can set band here directly,e.g. 868E6,915E6
 
 unsigned int counter = 0;
 String rssi = "RSSI --";
 String packSize = "--";
-String packet ;
+String packet;
 
-unsigned long starttime;
-unsigned long endtime;
-int rotacoes;
-const long DELAY_ = 10000;
-
+const long DELAY_ = 60000;
 const int digital_pin = 23; // possible digital Input for LoRa32
 
 void setup()
@@ -49,27 +47,10 @@ void loop()
   Heltec.display->drawString(90, 0, String(counter));
   Heltec.display->display();
 
-  starttime = millis();
-  endtime = starttime;
-  rotacoes = 0;
-  
-  while((endtime-starttime)<=DELAY_) {
-    opticalSensorReading();
-    endtime = millis();
-  }
+  int rotacoes = opticalSensorProcess(DELAY_, digital_pin);
 
-  sendPacket("Detecções = " + String(rotacoes));
+  sendPacket(String(rotacoes) + " : " + String(millis()));
 
-}
-
-void opticalSensorReading() {
-  if(digitalRead(digital_pin) == LOW){
-    rotacoes++;
-    while(digitalRead(digital_pin) == LOW) {
-      digitalWrite(LED, HIGH); //turn on the led
-    }
-  }
-  digitalWrite(LED, LOW); //turn off the led
 }
 
 void sendPacket(String message) {

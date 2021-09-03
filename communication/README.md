@@ -1,8 +1,8 @@
 # Communication
 
-Camada que tem como objetivo a implementação do firmware responsável pela coleta dos dados dos sensores e armazenamento em um banco de dados
+Camada que tem como objetivo a implementação do firmware responsável pela coleta dos dados dos sensores e envio para API.
 
-## Optical Sensor Communication
+## Optical Sensor Reading
 
 Este módulo se refere à implementação da captação de dados do sensor óptico e envio de pacote de dados por *LoRa* visando a leitura de dados referente ao RPM de um motor.
 
