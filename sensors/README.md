@@ -1,5 +1,8 @@
 # Sensors
-Camada responsável pela leitura e processamento dos dados provenientes dos sensores
+
+Camada responsável pela leitura e processamento dos dados provenientes dos sensores.
+O intuito da camada de sensores é a criação de bibliotecas para posterior inclusão das mesmas nas camadas superiores. Ao construir um ambiente de desenvolvimento do projeto é importante a adição destas bibliotecas no diretório `/Arduino/libraries`.
+Uma vez que as bibliotecas estejam adicionadas e devidamente atualizadas, a compilação dó código das camadas superiores deverá ocorrer sem grandes problemas.
 
 ## Optical Sensor Reading
 
