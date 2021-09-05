@@ -4,6 +4,8 @@ Camada voltada ao desenvolvimento do software que será responsável pelo proces
 ## Sensor Data API
 API responsável pelo *storage* dos dados no banco de dados e disponibilização dos mesmos via *endpoints* que serão utilizados pelo *front-end*.
 
+**OBS**: Não se esqueça de preencher as credenciais do banco de dados no arquivo *application.properties*. As credenciais podem ser encontradas na plataforma do Heroku na aplicação *sensordataapi*.
+
 ### Deploy e Release de nova versão
 No momento a API está rodando na plataforma em nuvem do *Heroku*. Para a construção da imagem e execução do container na nuvem, sugere-se que se siga o passo a passo abaixo com os comandos necessários para o deploy da API.
 
