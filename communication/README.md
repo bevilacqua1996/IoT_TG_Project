@@ -52,4 +52,4 @@ Biblioteca com os métodos possíveis de comunicação com a API.
 **Métodos disponíveis:**
 
 - **PostData**: Método POST de adição de novo conjunto de dados. 
--- **Parâmetros**: JSON *body* com os atributos da entidade Sensor Data.
+  - **Parâmetros**: JSON *body* com os atributos da entidade Sensor Data.
