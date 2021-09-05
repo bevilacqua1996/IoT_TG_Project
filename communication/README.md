@@ -6,6 +6,8 @@ Camada que tem como objetivo a implementação do firmware responsável pela col
 
 A camada de envio (*sender*) será utilizada para a leitura de dados dos sensores e envio por protocolo LoRa para um *Gateway* responável pelo roteamento desses dados para o banco de dados.
 
+**OBS**: Não se esqueça de adicionar as bibliotecas relacionadas à extração de dados dos sensores da camada *sensors*. É aqui que elas deverão ser utilizadas.
+
 ## Sensor Data Receiver
 
 Esta é a camada de implementação do *Gateway*. O *Gateway* será responsável pelo tratamento do pacote de informações enviado pelo *Sender* e envio para a API via método POST.
