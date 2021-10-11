@@ -16,4 +16,6 @@ Acesse a camada de [*communication*](https://github.com/bevilacqua1996/IoT_TG_Pr
 
 Acesse a camada de [*sensors*](https://github.com/bevilacqua1996/IoT_TG_Project/tree/main/sensors) para conhecer a documentação das bibliotecas de extração de dados dos sensores.
 
+# Diagrama Ilustrativo da Arquitetura
+
 ![Project_Architecture](https://user-images.githubusercontent.com/18063196/136719107-05f3a1d6-c0d9-45fc-829d-c04a19f7ada7.jpg)
