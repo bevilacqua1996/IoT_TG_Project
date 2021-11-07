@@ -6,6 +6,7 @@
 
 #include "heltec.h"
 #include "images.h"
+#include <protothreads.h>
 #include <opticalSensorReading.h>
 
 #define BAND    915E6  //you can set band here directly,e.g. 868E6,915E6
@@ -17,6 +18,8 @@ String packet;
 
 const long DELAY_ = 60000;
 const int digital_pin = 23; // possible digital Input for LoRa32
+
+static struct pt ptOpticalSensor;
 
 void setup()
 {
@@ -35,6 +38,8 @@ void setup()
   delay(1000);
 
   pinMode(digital_pin, INPUT);
+
+  PT_INIT(&ptOpticalSensor);
 }
 
 void loop()
@@ -46,11 +51,17 @@ void loop()
   Heltec.display->drawString(0, 0, "Sending packet: ");
   Heltec.display->drawString(90, 0, String(counter));
   Heltec.display->display();
+  
+  protothreadOpticalSensor(&ptOpticalSensor);
 
+}
+
+static int protothreadOpticalSensor(struct pt *pt) {
+  PT_BEGIN(pt);
   int rotacoes = opticalSensorProcess(DELAY_, digital_pin);
-
   sendPacket(String(rotacoes) + " : " + String(millis()));
-
+  PT_END(pt);
+  
 }
 
 void sendPacket(String message) {
@@ -60,7 +71,7 @@ void sendPacket(String message) {
   LoRa.setTxPower(14,RF_PACONFIG_PASELECT_PABOOST);
   LoRa.print(message);
   LoRa.endPacket();
-
+  
   counter++;
 }
 
