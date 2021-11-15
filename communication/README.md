@@ -25,6 +25,7 @@ Biblioteca de construção do objeto JSON enviado para a API via método POST.
 **Atributos:**
 
 - rpm;
+- voltage;
 - timestamp.
 
 ### Rest Mapping
