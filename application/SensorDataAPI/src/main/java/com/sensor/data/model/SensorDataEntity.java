@@ -11,7 +11,9 @@ public class SensorDataEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
 	
-	private int rpm;
+	private Integer rpm;
+
+	private Double voltage;
 
 	@Column(name = "timestamp_microcontroler")
 	private long timestampMicrocontroler;
@@ -27,14 +29,6 @@ public class SensorDataEntity {
 
 	public void setId(Integer id) {
 		this.id = id;
-	}
-
-	public int getRpm() {
-		return rpm;
-	}
-
-	public void setRpm(int rpm) {
-		this.rpm = rpm;
 	}
 
 	public long getTimestampMicrocontroler() {
@@ -59,5 +53,21 @@ public class SensorDataEntity {
 
 	public void setDate(LocalDateTime date) {
 		this.date = date;
+	}
+
+	public Integer getRpm() {
+		return rpm;
+	}
+
+	public void setRpm(Integer rpm) {
+		this.rpm = rpm;
+	}
+
+	public Double getVoltage() {
+		return voltage;
+	}
+
+	public void setVoltage(Double voltage) {
+		this.voltage = voltage;
 	}
 }

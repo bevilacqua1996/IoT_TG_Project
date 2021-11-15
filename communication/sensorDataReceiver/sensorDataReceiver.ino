@@ -7,6 +7,10 @@
 #include "images.h"
 #include "sensorDataJSON.h"
 #include "restMapping.h"
+#include "support.h"
+
+#define ROTATIONS_CODE 1
+#define VOLTAGE_CODE 2
 
 #include <WiFi.h>
 
@@ -35,13 +39,22 @@ void buildAndSendLoRaData(){
   } else {
     httpResponseCode = 500;
   }
+
+  String data_type = getValue(packet, 0);
+  String type_str;
+  String data_str = getValue(packet, 1);
+  if(data_type.toInt() == ROTATIONS_CODE) {
+    type_str = "Rotations";
+  } else if(data_type.toInt() == VOLTAGE_CODE) {
+    type_str = "Voltage";
+  }
   
   Heltec.display->clear();
   Heltec.display->setTextAlignment(TEXT_ALIGN_LEFT);
   Heltec.display->setFont(ArialMT_Plain_10);
   Heltec.display->drawString(0 , 15 , "Received "+ packSize + " bytes");
   Heltec.display->drawString(0 , 40 , "Http Status Code: "+ String(httpResponseCode));
-  Heltec.display->drawStringMaxWidth(0 , 26 , 128, packet);
+  Heltec.display->drawStringMaxWidth(0 , 26 , 128, type_str + " : " + data_str);
   Heltec.display->drawString(0, 0, rssi);  
   Heltec.display->display();
 }
