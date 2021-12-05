@@ -6,7 +6,6 @@
 
 #include "heltec.h"
 #include "images.h"
-#include <protothreads.h>
 #include <opticalSensorReading.h>
 #include <TrueRMSNew.h>
 
@@ -36,9 +35,6 @@ float VoltRange = 3.30; // The full scale value is set to 5.00 Volts but can be 
                         // input scaling circuit in front of the ADC.
 unsigned long last_time = 0;
 
-static struct pt ptOpticalSensor;
-static struct pt ptVoltageSensor;
-
 void setup()
 {
   // configure for automatic base-line restoration and continuous scan mode:
@@ -63,9 +59,6 @@ void setup()
   delay(1000);
 
   pinMode(digital_pin, INPUT);
-
-  PT_INIT(&ptOpticalSensor);
-  PT_INIT(&ptVoltageSensor);
   
 }
 
@@ -78,27 +71,15 @@ void loop()
   Heltec.display->drawString(0, 0, "Sending packet: ");
   Heltec.display->drawString(90, 0, String(counter));
   Heltec.display->display();
-
-  protothreadVoltageSensor(&ptVoltageSensor);
-  protothreadOpticalSensor(&ptOpticalSensor);
-
-}
-
-static int protothreadOpticalSensor(struct pt *pt) {
-  PT_BEGIN(pt);
+  
+  voltageSensor();
   opticalSensor();
-  PT_END(pt);
+
 }
 
 void opticalSensor() {
   int rotacoes = opticalSensorProcess(DELAY_, digital_pin);
   sendPacket(String(ROTATIONS_CODE) + " : " + String(rotacoes));
-}
-
-static int protothreadVoltageSensor(struct pt *pt) {
-  PT_BEGIN(pt);
-  voltageSensor();
-  PT_END(pt); 
 }
 
 void voltageSensor() {
