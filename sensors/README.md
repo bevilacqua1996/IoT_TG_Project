@@ -38,3 +38,17 @@ LoRa  ZMPT101B
 GND     GND
 0      OUT
 ```
+
+## Acc
+
+Este módulo se refere à implementação da captação de dados do sensor GY-80, mais precisamente do seu módulo de acelerômetro. Este módulo é re-implementado na camada de _communication_ para que os dados referente ao acelerômetro sejam enviados para a API.
+
+Para montagem apropriada do circuito, sugere-se que se siga as seguintes pinagens para uma integração do *sensor GY-80 (ou MPU6050)* com *LoRa32*.
+
+```
+LoRa  ZMPT101B
+3v3     VCC
+GND     GND
+21      SDA
+22      SCL
+```
