@@ -15,6 +15,15 @@ public class SensorDataEntity {
 
 	private Double voltage;
 
+	@Column(name = "x_acc")
+	private Double xAcc;
+
+	@Column(name = "y_acc")
+	private Double yAcc;
+
+	@Column(name = "z_acc")
+	private Double zAcc;
+
 	@Column(name = "timestamp_microcontroler")
 	private long timestampMicrocontroler;
 
@@ -69,5 +78,29 @@ public class SensorDataEntity {
 
 	public void setVoltage(Double voltage) {
 		this.voltage = voltage;
+	}
+
+	public Double getxAcc() {
+		return xAcc;
+	}
+
+	public void setxAcc(Double xAcc) {
+		this.xAcc = xAcc;
+	}
+
+	public Double getyAcc() {
+		return yAcc;
+	}
+
+	public void setyAcc(Double yAcc) {
+		this.yAcc = yAcc;
+	}
+
+	public Double getzAcc() {
+		return zAcc;
+	}
+
+	public void setzAcc(Double zAcc) {
+		this.zAcc = zAcc;
 	}
 }
