@@ -8,15 +8,22 @@
 #include "images.h"
 #include <opticalSensorReading.h>
 #include <TrueRMSNew.h>
+#include <acc.h>
+#include <Wire.h>
 
 #define ROTATIONS_CODE 1
 #define VOLTAGE_CODE 2
+#define ACC_X_CODE 3
+#define ACC_Y_CODE 4
+#define ACC_Z_CODE 5
 
 #define BAND    915E6  //you can set band here directly,e.g. 868E6,915E6
 
 #define LPERIOD 100    // loop period time in us. In this case 100 us
 #define ADC_INPUT 0     // define the used ADC input channel
 #define RMS_WINDOW 5000   // rms window of 1667 samples, means 10 periods @60Hz
+
+#define Register_2D 0x2D
 
 unsigned int counter = 0;
 String rssi = "RSSI --";
@@ -35,6 +42,8 @@ float VoltRange = 3.30; // The full scale value is set to 5.00 Volts but can be 
                         // input scaling circuit in front of the ADC.
 unsigned long last_time = 0;
 
+int ADXAddress = 0x53;  // the default 7-bit slave address
+
 void setup()
 {
   // configure for automatic base-line restoration and continuous scan mode:
@@ -44,6 +53,14 @@ void setup()
   readRms.start(); //start measuring
   
   nextLoop = micros() + LPERIOD; // Set the loop timer variable for the next loop interval.
+
+  Wire.begin();                
+  // enable to measute g data
+  Wire.beginTransmission(ADXAddress);
+  Wire.write(Register_2D);
+  Wire.write(8);                //measuring enable
+  Wire.endTransmission();     // stop transmitting
+  
    //WIFI Kit series V1 not support Vext control
   Heltec.begin(true /*DisplayEnable Enable*/, true /*Heltec.Heltec.Heltec.LoRa Disable*/, true /*Serial Enable*/, true /*PABOOST Enable*/, BAND /*long BAND*/);
  
@@ -74,7 +91,20 @@ void loop()
   
   voltageSensor();
   opticalSensor();
+  accSensor();
 
+}
+
+void accSensor() {
+  int accX = getXAcc(ADXAddress);
+  sendPacket(String(ACC_X_CODE) + " : " + String(accX));
+  delay(DELAY_/3);
+  int accY = getYAcc(ADXAddress);
+  sendPacket(String(ACC_Y_CODE) + " : " + String(accY));
+  delay(DELAY_/3);
+  int accZ = getZAcc(ADXAddress);
+  sendPacket(String(ACC_Z_CODE) + " : " + String(accZ));
+  delay(DELAY_/3);
 }
 
 void opticalSensor() {

@@ -11,6 +11,9 @@
 
 #define ROTATIONS_CODE 1
 #define VOLTAGE_CODE 2
+#define ACC_X_CODE 3
+#define ACC_Y_CODE 4
+#define ACC_Z_CODE 5
 
 #include <WiFi.h>
 
@@ -47,6 +50,12 @@ void buildAndSendLoRaData(){
     type_str = "Rotations";
   } else if(data_type.toInt() == VOLTAGE_CODE) {
     type_str = "Voltage";
+  } else if(data_type.toInt() == ACC_X_CODE) {
+    type_str = "Xacc";
+  } else if(data_type.toInt() == ACC_Y_CODE) {
+    type_str = "Yacc";
+  } else if(data_type.toInt() == ACC_Z_CODE) {
+    type_str = "Zacc";
   }
   
   Heltec.display->clear();
