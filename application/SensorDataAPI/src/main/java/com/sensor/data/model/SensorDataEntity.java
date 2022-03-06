@@ -24,6 +24,9 @@ public class SensorDataEntity {
 	@Column(name = "z_acc")
 	private Double zAcc;
 
+	@Column(name = "temperature")
+	private Double temperature;
+
 	@Column(name = "timestamp_microcontroler")
 	private long timestampMicrocontroler;
 
@@ -102,5 +105,13 @@ public class SensorDataEntity {
 
 	public void setzAcc(Double zAcc) {
 		this.zAcc = zAcc;
+	}
+
+	public Double getTemperature() {
+		return temperature;
+	}
+
+	public void setTemperature(Double temperature) {
+		this.temperature = temperature;
 	}
 }
