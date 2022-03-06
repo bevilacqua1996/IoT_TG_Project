@@ -8,6 +8,7 @@
 #define ACC_X_CODE 3
 #define ACC_Y_CODE 4
 #define ACC_Z_CODE 5
+#define TEMPERATURE_CODE 6
 String buildJSON(String packet);
 long getTimestamp();
 int getRpm();

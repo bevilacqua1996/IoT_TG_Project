@@ -10,12 +10,15 @@
 #include <TrueRMSNew.h>
 #include <acc.h>
 #include <Wire.h>
+#include <OneWire.h>
+#include <DallasTemperature.h>
 
 #define ROTATIONS_CODE 1
 #define VOLTAGE_CODE 2
 #define ACC_X_CODE 3
 #define ACC_Y_CODE 4
 #define ACC_Z_CODE 5
+#define TEMPERATURE_CODE 6
 
 #define BAND    915E6  //you can set band here directly,e.g. 868E6,915E6
 
@@ -24,6 +27,8 @@
 #define RMS_WINDOW 5000   // rms window of 1667 samples, means 10 periods @60Hz
 
 #define Register_2D 0x2D
+
+#define TEMPERATURE_PIN  33 // ESP32 pin GIOP33 connected to DS18B20 sensor's DQ pin
 
 unsigned int counter = 0;
 String rssi = "RSSI --";
@@ -35,6 +40,9 @@ const int digital_pin = 23; // possible digital Input for LoRa32
 
 Rms readRms; // create an instance of Rms.
 
+OneWire oneWire(TEMPERATURE_PIN);
+DallasTemperature DS18B20(&oneWire);
+
 unsigned long nextLoop;
 int adcVal;
 int cnt=0;
@@ -43,6 +51,8 @@ float VoltRange = 3.30; // The full scale value is set to 5.00 Volts but can be 
 unsigned long last_time = 0;
 
 int ADXAddress = 0x53;  // the default 7-bit slave address
+
+float tempC; // temperature in Celsius
 
 void setup()
 {
@@ -60,6 +70,8 @@ void setup()
   Wire.write(Register_2D);
   Wire.write(8);                //measuring enable
   Wire.endTransmission();     // stop transmitting
+
+  DS18B20.begin();    // initialize the DS18B20 sensor
   
    //WIFI Kit series V1 not support Vext control
   Heltec.begin(true /*DisplayEnable Enable*/, true /*Heltec.Heltec.Heltec.LoRa Disable*/, true /*Serial Enable*/, true /*PABOOST Enable*/, BAND /*long BAND*/);
@@ -92,7 +104,15 @@ void loop()
   voltageSensor();
   opticalSensor();
   accSensor();
+  temperatureSensor();
 
+}
+
+void temperatureSensor() {
+  DS18B20.requestTemperatures();       // send the command to get temperatures
+  tempC = DS18B20.getTempCByIndex(0);  // read temperature in °C
+  sendPacket(String(TEMPERATURE_CODE) + " : " + String(tempC));
+  delay(DELAY_);
 }
 
 void accSensor() {

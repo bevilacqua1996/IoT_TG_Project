@@ -6,6 +6,7 @@ double voltageRMS;
 double xAcc;
 double yAcc;
 double zAcc;
+double temperature;
 
 String data_type;
 
@@ -16,6 +17,7 @@ void parsePacket(String packet) {
   String x_acc_string;
   String y_acc_string;
   String z_acc_string;
+  String temperature_string;
   
   data_type = getValue(packet, 0);
   
@@ -34,6 +36,9 @@ void parsePacket(String packet) {
   } else if(data_type.toInt() == ACC_Z_CODE) {
     z_acc_string = getValue(packet, 1);
     zAcc = atof(z_acc_string.c_str());
+  } else if(data_type.toInt() == TEMPERATURE_CODE) {
+    temperature_string = getValue(packet, 1);
+    temperature = atof(temperature_string.c_str());
   }
 
   timestamp = millis();
@@ -56,6 +61,8 @@ String buildJSON(String packet) {
     doc["yAcc"] = yAcc;
   } else if(data_type.toInt() == ACC_Z_CODE) {
     doc["zAcc"] = zAcc;
+  } else if(data_type.toInt() == TEMPERATURE_CODE) {
+    doc["temperature"] = temperature;
   }
   
   doc["timestampMicrocontroler"] = timestamp;
@@ -80,4 +87,16 @@ double getVoltage() {
 
 double getXAcc() {
   return xAcc;
+}
+
+double getYAcc() {
+  return yAcc;
+}
+
+double getZAcc() {
+  return zAcc;
+}
+
+double getTemperatureC() {
+  return temperature;
 }
