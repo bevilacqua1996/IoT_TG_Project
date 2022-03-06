@@ -30,7 +30,7 @@ void start_connection(){
   while(WiFi.status() != WL_CONNECTED) 
   {
     // Connect to WPA/WPA2 network.
-    vTaskDelay(serverDelay);
+    vTaskDelay(_100ms);
     yield();
   }
   Serial.print("Status: ");Serial.println(WiFi.status());
@@ -74,10 +74,6 @@ void run_client(){
           client.println("<title>cactus.io</title>");
           client.println("</head>");
           client.println("<body>");
-          // output the value from the DS18B20 temperature sensor
-//          client.print("Temperature is ");
-//          client.print(temp);
-//          client.println(" &#8451;"); // change #8451 to #8457 for fahrenheit
           printTemperatures(client);
           client.println("</body>");
           client.println("</html>");
@@ -85,21 +81,6 @@ void run_client(){
         }
         if (c == '\n') 
         {
-//          Serial.print("analog Read: ");
-//          Serial.println(analog);
-          // you're starting a new line
-          currentLineIsBlank = true;
-//          if (strstr(linebuf,"GET /y") > 0)
-//          {
-//            Serial.println("========= ON =========");
-//            digitalWrite(LED_BUILTIN, HIGH);
-//          }
-//          else if (strstr(linebuf,"GET /n") > 0)
-//          {
-//            Serial.println("======== OFF =========");
-//            digitalWrite(LED_BUILTIN, LOW);
-//          }
-
           // you're starting a new line
           currentLineIsBlank = true;
           memset(linebuf,0,sizeof(linebuf));
@@ -114,7 +95,7 @@ void run_client(){
     }
     // give the web browser time to receive the data
     //delay(1);
-    vTaskDelay(shortDelay);
+    vTaskDelay(_100ms);
 
     // close the connection:
     client.stop();
@@ -123,13 +104,7 @@ void run_client(){
 
 void printTemperatures(WiFiClient client){
   client.println("Temperatures:");
-  String str_values = Temperatures.flush_values();
+  String str_values = Temperatures.publish_values();
   //Serial.println(str_values);
   client.println(str_values);
-//  client.println(Temperatures.flush_values());
-//  for(int i=0; i<temps_index;i++){
-//    client.print(temps[i]/float(temp_factor));
-//    client.println(" &#8451; , "); // change #8451 to #8457 for fahrenheit
-//  }
-//  temps_index=0;
 }

@@ -1,5 +1,4 @@
-// http://192.168.15.8/H turns the LED on
-// http://192.168.15.8/L turns it off
+// Page: http://<meu_ip>
 
 #include <WiFi.h>
 #include <DallasTemperature.h>
@@ -9,20 +8,12 @@
 TaskHandle_t Task1;
 TaskHandle_t Task2;
 
-unsigned long t_c0 = 0;
-unsigned long loop_time = 100;
-unsigned long T_c0 = 0;
-const TickType_t xDelay = 1000 / portTICK_PERIOD_MS;
-const TickType_t tempDelay = 250 / portTICK_PERIOD_MS;
-const TickType_t shortDelay = 1 / portTICK_PERIOD_MS;
-const TickType_t serverDelay = 100 / portTICK_PERIOD_MS;
+volatile bool led_on;
+const TickType_t _1s = 1000 / portTICK_PERIOD_MS;
+const TickType_t _250ms = 250 / portTICK_PERIOD_MS;
+const TickType_t _1ms = 1 / portTICK_PERIOD_MS;
+const TickType_t _100ms = 100 / portTICK_PERIOD_MS;
 int n=0;
-
-volatile int analog=0;
-volatile bool led_on = 0;
-volatile int *temps = new int[6];
-int temps_index = 0;
-unsigned short temp_factor = 100;
 
 class SensorValues{
   public:
@@ -45,7 +36,7 @@ class SensorValues{
       return this->values[index];
     }
 
-    String flush_values(){
+    String publish_values(){
       String str_values = "*/*";
       while(is_writing);
       is_reading = 1;
@@ -69,7 +60,7 @@ class SensorValues{
 OneWire onewire(DS18B20_pin);
 DallasTemperature sensores_temp(&onewire);
 
-SensorValues Temperatures = SensorValues(6,temp_factor);
+SensorValues Temperatures = SensorValues(6,100);
 
 void setup() {
   Serial.begin(38400);
@@ -87,12 +78,11 @@ void setup() {
       0); /* Core where the task should run */
 
    pinMode(LED_BUILTIN, OUTPUT);
-   t_c0 = micros();
    sensores_temp.begin();
 }
 
 void loop() {
-  vTaskDelay( xDelay/2 );
+  vTaskDelay( _1s/2 );
   cycle();
 //  UBaseType_t uxHighWaterMark = uxTaskGetStackHighWaterMark( NULL );
 //  Serial.println(uxHighWaterMark);
@@ -104,7 +94,7 @@ void Task1code( void * parameter) {
   start_connection();
   for(;;) {
     run_client();
-    vTaskDelay( xDelay );
+    vTaskDelay( _1s );
     yield();
   }
 }
@@ -114,15 +104,6 @@ unsigned int remaining_time = 0;
 void cycle(){
   sensores_temp.requestTemperatures();
   Temperatures.add_value(sensores_temp.getTempCByIndex(0));
-  //Serial.println(Temperatures.get_value_at_index(0));
-//  Serial.print("\nValues[0]: "); Serial.println(Temperatures.values[0]);
-  
-//  add_value(temps,sensores_temp.getTempCByIndex(0),temps_index++,temp_factor);
-//  float temp = sensores_temp.getTempCByIndex(0);
-//  temps[temps_index] = temp*temp_factor;
-//  Serial.println(temps[temps_index]);
-//  temps_index++;
-//  led_on = !led_on;
   digitalWrite(LED_BUILTIN,led_on);
 }
 
