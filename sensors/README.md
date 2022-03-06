@@ -46,9 +46,22 @@ Este módulo se refere à implementação da captação de dados do sensor GY-80
 Para montagem apropriada do circuito, sugere-se que se siga as seguintes pinagens para uma integração do *sensor GY-80 (ou MPU6050)* com *LoRa32*.
 
 ```
-LoRa  ZMPT101B
+LoRa   GY-80
 3v3     VCC
 GND     GND
 21      SDA
 22      SCL
+```
+
+## Temp
+
+Este módulo se refere à implementação da captação de dados do sensor DS18B20, mais precisamente do sensor de temperatura. Este módulo é re-implementado na camada de _communication_ para que os dados referente à temperatura sejam enviados para a API.
+
+Para montagem apropriada do circuito, sugere-se que se siga as seguintes pinagens para uma integração do *sensor DS18B20* com *LoRa32*.
+
+```
+LoRa  DS18B20
+3v3     VCC
+GND     GND
+33      DQ
 ```
