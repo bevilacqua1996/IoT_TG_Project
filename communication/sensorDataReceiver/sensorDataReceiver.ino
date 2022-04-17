@@ -23,8 +23,8 @@ String rssi = "RSSI --";
 String packSize = "--";
 String packet ;
 
-const char* ssid     = "NEUMLINK";
-const char* password = "joiak3ler";
+extern const char* ssid;
+extern const char* password;
 
 void logo(){
   Heltec.display->clear();

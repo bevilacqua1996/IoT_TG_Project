@@ -2,7 +2,7 @@
 
 WiFiClient client;
 HTTPClient http;
-const char* serverName = "http://sensordataapi.herokuapp.com/sensorData";
+extern const char* serverName;
 
 int postData(String json) {
 

@@ -34,3 +34,4 @@ build/
 
 ### Custom Ignore ###
 *.sensormonitoring.json
+communication/sensorDataReceiver/info.c
