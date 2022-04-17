@@ -23,8 +23,8 @@ String rssi = "RSSI --";
 String packSize = "--";
 String packet ;
 
-const char* ssid = "PUT YOUR SSID HERE";
-const char* password = "PUT YOUR NETWORK PASSWORD HERE";
+const char* ssid     = "NEUMLINK";
+const char* password = "joiak3ler";
 
 void logo(){
   Heltec.display->clear();
@@ -96,6 +96,7 @@ void wifiConfigure() {
 void setup() {
 
   Heltec.begin(true /*DisplayEnable Enable*/, true /*Heltec.Heltec.Heltec.LoRa Disable*/, true /*Serial Enable*/, true /*PABOOST Enable*/, BAND /*long BAND*/);
+  Serial.begin(115200);
 
   Heltec.display->init();
   Heltec.display->flipScreenVertically();  
@@ -117,6 +118,8 @@ void setup() {
 
 void loop() {
   int packetSize = LoRa.parsePacket();
+//  Serial.println("A");
   if (packetSize) { cbk(packetSize);  }
   delay(10);
+//  delay(1000);
 }

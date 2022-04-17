@@ -75,6 +75,7 @@ void run_client(){
           client.println("</head>");
           client.println("<body>");
           printTemperatures(client);
+          printVoltages(client);
           client.println("</body>");
           client.println("</html>");
           break;
@@ -105,6 +106,13 @@ void run_client(){
 void printTemperatures(WiFiClient client){
   client.println("Temperatures:");
   String str_values = Temperatures.publish_values();
+  //Serial.println(str_values);
+  client.println(str_values);
+}
+
+void printVoltages(WiFiClient client){
+  client.println("Voltages:");
+  String str_values = Voltages.publish_values();
   //Serial.println(str_values);
   client.println(str_values);
 }

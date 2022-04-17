@@ -4,7 +4,7 @@
  * Função: Sender, envio de dados para LoRa receiver
 */
 
-#include "heltec.h"
+#include <heltec.h>
 #include "images.h"
 #include <opticalSensorReading.h>
 #include <TrueRMSNew.h>
@@ -35,7 +35,8 @@ String rssi = "RSSI --";
 String packSize = "--";
 String packet;
 
-const long DELAY_ = 60000;
+//const long DELAY_ = 60000;
+const long DELAY_ = 10000;
 const int digital_pin = 23; // possible digital Input for LoRa32
 
 Rms readRms; // create an instance of Rms.
@@ -51,7 +52,6 @@ float VoltRange = 3.30; // The full scale value is set to 5.00 Volts but can be 
 unsigned long last_time = 0;
 
 int ADXAddress = 0x53;  // the default 7-bit slave address
-
 float tempC; // temperature in Celsius
 
 void setup()
@@ -101,11 +101,10 @@ void loop()
   Heltec.display->drawString(90, 0, String(counter));
   Heltec.display->display();
   
-  voltageSensor();
-  opticalSensor();
+//  voltageSensor();
+//  opticalSensor();
   accSensor();
-  temperatureSensor();
-
+//  temperatureSensor();
 }
 
 void temperatureSensor() {
