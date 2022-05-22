@@ -24,14 +24,14 @@ void start_connection(){
    // We start by connecting to a WiFi network
    Serial.println("Start");
    WiFi.begin(ssid, password);
-   yield();
+   //yield();
   //attempt to connect to Wifi network:
   Serial.println("Trying connection...");
   while(WiFi.status() != WL_CONNECTED) 
   {
     // Connect to WPA/WPA2 network.
-    vTaskDelay(_100ms);
-    yield();
+    vTaskDelay(_10ms);
+    //yield();
   }
   Serial.print("Status: ");Serial.println(WiFi.status());
   server.begin();
@@ -49,8 +49,13 @@ void run_client(){
     charcount=0;
     // an http request ends with a blank line
     boolean currentLineIsBlank = true;
+    unsigned long timer_aux_client=millis();
     while (client.connected()) 
     {
+      if(millis()-timer_aux_client > 500){
+        vTaskSuspend(Task1);
+        timer_aux_client = millis();
+      }
       if (client.available()) 
       {
         char c = client.read();
@@ -94,9 +99,10 @@ void run_client(){
         }
       }
     }
+    Serial.println(millis()-timer_aux_client);
     // give the web browser time to receive the data
     //delay(1);
-    vTaskDelay(_100ms);
+    vTaskDelay(_1s);
 
     // close the connection:
     client.stop();

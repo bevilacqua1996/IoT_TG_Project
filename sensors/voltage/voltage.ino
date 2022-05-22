@@ -5,7 +5,7 @@
                               // https://code.google.com/archive/p/digitalwritefast/downloads
 
 #define LPERIOD 100    // loop period time in us. In this case 100 us
-#define ADC_INPUT 34     // define the used ADC input channel
+#define ADC_INPUT 36     // define the used ADC input channel
 //#define RMS_WINDOW 40   // rms window of 40 samples, means 2 periods @50Hz
 #define RMS_WINDOW 5000   // rms window of 1667 samples, means 10 periods @60Hz
 

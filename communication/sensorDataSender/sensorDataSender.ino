@@ -23,12 +23,12 @@
 #define BAND    915E6  //you can set band here directly,e.g. 868E6,915E6
 
 #define LPERIOD 100    // loop period time in us. In this case 100 us
-#define ADC_INPUT 0     // define the used ADC input channel
+#define VOLTAGE_PIN 36     // define the used ADC input channel
 #define RMS_WINDOW 5000   // rms window of 1667 samples, means 10 periods @60Hz
 
 #define Register_2D 0x2D
 
-#define TEMPERATURE_PIN  33 // ESP32 pin GIOP33 connected to DS18B20 sensor's DQ pin
+#define TEMPERATURE_PIN 32 // ESP32 pin GIOP33 connected to DS18B20 sensor's DQ pin
 
 unsigned int counter = 0;
 String rssi = "RSSI --";
@@ -36,14 +36,21 @@ String packSize = "--";
 String packet;
 
 //const long DELAY_ = 60000;
-const long DELAY_ = 10000;
-const int digital_pin = 23; // possible digital Input for LoRa32
+const long DELAY_ = 2000;
 
-Rms readRms; // create an instance of Rms.
+// Optical
+const int OPTICAL_PIN = 23; // possible digital Input for LoRa32
+unsigned long dt_vel=0;
+unsigned long timer_aux=0;
+int rotation=0;
 
+// Temperature
 OneWire oneWire(TEMPERATURE_PIN);
 DallasTemperature DS18B20(&oneWire);
+float tempC; // temperature in Celsius
 
+// Voltage
+Rms readRms; // create an instance of Rms.
 unsigned long nextLoop;
 int adcVal;
 int cnt=0;
@@ -51,11 +58,15 @@ float VoltRange = 3.30; // The full scale value is set to 5.00 Volts but can be 
                         // input scaling circuit in front of the ADC.
 unsigned long last_time = 0;
 
-int ADXAddress = 0x53;  // the default 7-bit slave address
-float tempC; // temperature in Celsius
+// MPU6050
+//int ADXAddress = 0x53;  // the default 7-bit slave address
+int ADXAddress = 0x68;
+
 
 void setup()
 {
+  attachInterrupt(digitalPinToInterrupt(OPTICAL_PIN), get_delta, FALLING);
+  
   // configure for automatic base-line restoration and continuous scan mode:
   readRms.begin(VoltRange, RMS_WINDOW, ADC_12BIT, BLR_ON, CNT_SCAN);
   
@@ -64,12 +75,7 @@ void setup()
   
   nextLoop = micros() + LPERIOD; // Set the loop timer variable for the next loop interval.
 
-  Wire.begin();                
-  // enable to measute g data
-  Wire.beginTransmission(ADXAddress);
-  Wire.write(Register_2D);
-  Wire.write(8);                //measuring enable
-  Wire.endTransmission();     // stop transmitting
+  setup_imu();
 
   DS18B20.begin();    // initialize the DS18B20 sensor
   
@@ -87,7 +93,7 @@ void setup()
   Heltec.display->display();
   delay(1000);
 
-  pinMode(digital_pin, INPUT);
+  //pinMode(OPTICAL_PIN, INPUT);
   
 }
 
@@ -101,10 +107,10 @@ void loop()
   Heltec.display->drawString(90, 0, String(counter));
   Heltec.display->display();
   
-//  voltageSensor();
-//  opticalSensor();
+  voltageSensor();
+  opticalSensor();
   accSensor();
-//  temperatureSensor();
+  temperatureSensor();
 }
 
 void temperatureSensor() {
@@ -112,6 +118,24 @@ void temperatureSensor() {
   tempC = DS18B20.getTempCByIndex(0);  // read temperature in °C
   sendPacket(String(TEMPERATURE_CODE) + " : " + String(tempC));
   delay(DELAY_);
+
+  String mess = "Temperatura [ºC]: " + String(tempC);
+  Serial.println(mess);
+}
+
+void setup_imu(){
+//  Wire.begin();                
+//  // enable to measute g data
+//  Wire.beginTransmission(ADXAddress);
+//  Wire.write(Register_2D);
+//  Wire.write(8);                //measuring enable
+//  Wire.endTransmission();     // stop transmitting
+  Wire.begin(4, 15, 100000); // sda, scl, clock speed
+  Wire.beginTransmission(ADXAddress);
+  Wire.write(0x6B);  // PWR_MGMT_1 register
+  Wire.write(0);     // set to zero (wakes up the MPU−6050)
+  Wire.endTransmission(true);
+  Serial.println("Setup complete");
 }
 
 void accSensor() {
@@ -124,24 +148,49 @@ void accSensor() {
   int accZ = getZAcc(ADXAddress);
   sendPacket(String(ACC_Z_CODE) + " : " + String(accZ));
   delay(DELAY_/3);
+
+  String mess = "Aceleração: x=" + String(accX) + ", y=" + String(accY) + ", z=" + String(accZ);
+  Serial.println(mess);
 }
 
 void opticalSensor() {
-  int rotacoes = opticalSensorProcess(DELAY_, digital_pin);
+  long starttime = millis();
+  long endtime = starttime;
+  //int rotacoes = opticalSensorProcess(DELAY_, OPTICAL_PIN);
+  int rotacoes=0;
+  while((endtime-starttime)<=DELAY_){
+    if(dt_vel){
+      rotacoes = 60000000/dt_vel;
+      //Serial.println(rotacoes);
+    }
+    endtime = millis();
+  }
   sendPacket(String(ROTATIONS_CODE) + " : " + String(rotacoes));
+  
+  String mess = "Rotações [rpm]: " + String(rotacoes);
+  Serial.println(mess);
+}
+
+void get_delta(){   // interrupt
+    dt_vel = micros() - timer_aux;                                       // Calcula delta de tempo entre ultimo pulso e instante atual
+    timer_aux = micros();                                                // Atualiza instante do ultimo pulso
 }
 
 void voltageSensor() {
   long starttime = millis();
   long endtime = starttime;
   while((endtime-starttime)<=DELAY_) {
-    adcVal = analogRead(ADC_INPUT); // read the ADC.
+    adcVal = analogRead(VOLTAGE_PIN); // read the ADC.
+    while(nextLoop > micros());  // wait until the end of the loop time interval
+    nextLoop += LPERIOD;
     readRms.update(adcVal); // update
     endtime = millis();
-    readRms.update(adcVal); // update
   }
   readRms.publish();
   sendPacket(String(VOLTAGE_CODE) + " : " + String(540.0*readRms.rmsVal,2));
+  
+  String mess = "Tensão [V]: " + String(540.0*readRms.rmsVal,2);
+  Serial.println(mess);
 }
 
 void sendPacket(String message) {
@@ -151,7 +200,6 @@ void sendPacket(String message) {
   LoRa.setTxPower(14,RF_PACONFIG_PASELECT_PABOOST);
   LoRa.print(message);
   LoRa.endPacket();
-  
   counter++;
 }
 

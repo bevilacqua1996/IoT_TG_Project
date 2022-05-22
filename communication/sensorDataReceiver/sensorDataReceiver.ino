@@ -16,7 +16,7 @@
 #define ACC_Z_CODE 5
 #define TEMPERATURE_CODE 6
 
-#include <WiFi.h>
+//#include <WiFi.h>
 
 #define BAND    915E6  //you can set band here directly,e.g. 868E6,915E6
 String rssi = "RSSI --";
@@ -83,6 +83,7 @@ void wifiConfigure() {
   WiFi.begin(ssid, password);
   while(WiFi.status() != WL_CONNECTED) {
     delay(500);
+    Serial.println("Trying to conect...");
   }
 
   Heltec.display->clear();
@@ -94,10 +95,8 @@ void wifiConfigure() {
 }
 
 void setup() {
-
   Heltec.begin(true /*DisplayEnable Enable*/, true /*Heltec.Heltec.Heltec.LoRa Disable*/, true /*Serial Enable*/, true /*PABOOST Enable*/, BAND /*long BAND*/);
-  Serial.begin(115200);
-
+  
   Heltec.display->init();
   Heltec.display->flipScreenVertically();  
   Heltec.display->setFont(ArialMT_Plain_10);
