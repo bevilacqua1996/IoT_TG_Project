@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include "support.h"
+#include <sstream>
 #define ROTATIONS_CODE 1
 #define VOLTAGE_CODE 2
 #define ACC_X_CODE 3
