@@ -37,11 +37,13 @@ String packet;
 
 //const long DELAY_ = 60000;
 const long DELAY_ = 2000;
+const long VOLT_LOOP_TIME_ = 500;
+const long OPT_LOOP_TIME_ = 500;
 unsigned long last_t_task1 = 0;
 
 // Optical
 const int OPTICAL_PIN = 23; // possible digital Input for LoRa32
-unsigned long dt_vel=0;
+volatile unsigned long dt_vel=0;
 unsigned long timer_aux=0;
 int rotation=0;
 
@@ -65,8 +67,10 @@ int ADXAddress = 0x68;
 
 const TickType_t _1s = 1000 / portTICK_PERIOD_MS;
 const TickType_t _1ms = 1 / portTICK_PERIOD_MS;
+const TickType_t _10ms = 10 / portTICK_PERIOD_MS;
 const TickType_t _100ms = 100 / portTICK_PERIOD_MS;
 const TickType_t _5s = 5000 / portTICK_PERIOD_MS; 
+const TickType_t _10s = 10000 / portTICK_PERIOD_MS; 
 TaskHandle_t Task1;
 static String tmp="";
 
@@ -210,6 +214,8 @@ void loop()
   UBaseType_t uxHighWaterMark = uxTaskGetStackHighWaterMark( NULL );
   String mensagem = "Core:" + String((int)xPortGetCoreID()) + " --> Stack used: " + String((uint32_t)uxHighWaterMark);
   Serial.println(mensagem);
+  Serial.println(micros() - last_time);
+  last_time = micros();
 }
 
 void Task1code( void * parameter) {
@@ -271,18 +277,29 @@ void accSensor() {
 }
 
 void opticalSensor() {
-  long starttime = millis();
-  long endtime = starttime;
   //int rotacoes = opticalSensorProcess(DELAY_, OPTICAL_PIN);
   int rotations=0;
-  while((endtime-starttime)<=DELAY_){
+  unsigned long _sum_dt=0;
+  int _count=0;
+  long starttime = millis();
+  long endtime = starttime;
+  while((endtime-starttime)<=OPT_LOOP_TIME_){
     if(dt_vel){
-      rotations = 60000000/dt_vel;
+//      rotations = 60000000/dt_vel;
+//      sum_rotations += 60000000/dt_vel;
+      _sum_dt += dt_vel;
+      _count++;
+      vTaskDelay( _10ms );
       //Serial.println(rotacoes);
     }
     endtime = millis();
   }
   //sendPacket(String(ROTATIONS_CODE) + " : " + String(rotacoes));
+//  Serial.print(_count); Serial.print("$");Serial.println(_sum_dt);
+  if(_sum_dt) 
+    rotations = 60000000/(_sum_dt/_count);
+  _sum_dt = 0;
+  _count = 0; 
   Rotations.add_value(rotations);
 }
 
@@ -294,7 +311,7 @@ void get_delta(){   // interrupt
 void voltageSensor() {
   long starttime = millis();
   long endtime = starttime;
-  while((endtime-starttime)<=DELAY_) {
+  while((endtime-starttime)<=VOLT_LOOP_TIME_) {
     adcVal = analogRead(VOLTAGE_PIN); // read the ADC.
     while(nextLoop > micros());  // wait until the end of the loop time interval
     nextLoop += LPERIOD;
