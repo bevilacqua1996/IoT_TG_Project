@@ -1,3 +1,4 @@
+
 /*
  * Camada de comunicação LoRa e API
  * 
@@ -12,6 +13,7 @@
 #include <Wire.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
+#include <ArduinoJson.h>
 
 #define ROTATIONS_CODE 1
 #define VOLTAGE_CODE 2
@@ -29,6 +31,8 @@
 #define Register_2D 0x2D
 
 #define TEMPERATURE_PIN 32 // ESP32 pin GIOP33 connected to DS18B20 sensor's DQ pin
+
+#define ARRAY_SIZE 15
 
 volatile unsigned int counter = 0;
 String rssi = "RSSI --";
@@ -95,8 +99,13 @@ class SensorValues{
       }
     }
     
-    float get_value_at_index(short index){
+    float get_value_at_index(short index) volatile{
       return this->values[index];
+    }
+
+    void clear_array() volatile{
+      std::fill_n(values,array_size,-200);
+      index=0;
     }
 
     String publish_values() volatile{
@@ -132,7 +141,7 @@ class SensorValues{
       counter++;
     }
     
-    volatile bool is_reading=1;
+    volatile bool is_reading=0;
     volatile bool is_writing=0;
   private:
     volatile unsigned short index;
@@ -142,12 +151,12 @@ class SensorValues{
     unsigned char code;
 };
 
-volatile SensorValues Rotations = SensorValues(20,1000,ROTATIONS_CODE);
-volatile SensorValues Temperatures = SensorValues(20,100,TEMPERATURE_CODE);
-volatile SensorValues Accx = SensorValues(20,1000,ACC_X_CODE);
-volatile SensorValues Accy = SensorValues(20,1000,ACC_Y_CODE);
-volatile SensorValues Accz = SensorValues(20,1000,ACC_Z_CODE);
-volatile SensorValues Voltages = SensorValues(20,1000,VOLTAGE_CODE);
+volatile SensorValues Rotations = SensorValues(ARRAY_SIZE,1000,ROTATIONS_CODE);
+volatile SensorValues Temperatures = SensorValues(ARRAY_SIZE,100,TEMPERATURE_CODE);
+volatile SensorValues Accx = SensorValues(ARRAY_SIZE,1000,ACC_X_CODE);
+volatile SensorValues Accy = SensorValues(ARRAY_SIZE,1000,ACC_Y_CODE);
+volatile SensorValues Accz = SensorValues(ARRAY_SIZE,1000,ACC_Z_CODE);
+volatile SensorValues Voltages = SensorValues(ARRAY_SIZE,1000,VOLTAGE_CODE);
 
 void setup()
 {
@@ -221,16 +230,17 @@ void loop()
 void Task1code( void * parameter) {
   Serial.print("Core: ");Serial.println(xPortGetCoreID());
   for(;;) {
-    tmp += Rotations.publish_values();
-    tmp += Temperatures.publish_values();
-    tmp += Accx.publish_values();
-    tmp += Accy.publish_values();
-    tmp += Accz.publish_values();
-    tmp += Voltages.publish_values();
-    sendPacket(tmp);
+//    tmp += Rotations.publish_values();
+//    tmp += Temperatures.publish_values();
+//    tmp += Accx.publish_values();
+//    tmp += Accy.publish_values();
+//    tmp += Accz.publish_values();
+//    tmp += Voltages.publish_values();
+    sendJson();
+//    sendPacket(tmp);
 //    sendPacket(String(TEMPERATURE_CODE) + " : " + "-100.0");
-    Serial.println(tmp);
-    tmp="";
+//    Serial.println(tmp);
+//    tmp="";
     UBaseType_t uxHighWaterMark = uxTaskGetStackHighWaterMark( NULL );
     String mensagem = "Core:" + String((int)xPortGetCoreID()) + " --> Stack used: " + String((uint32_t)uxHighWaterMark);
     Serial.println(mensagem);
@@ -321,6 +331,59 @@ void voltageSensor() {
   readRms.publish();
   //sendPacket(String(VOLTAGE_CODE) + " : " + String(540.0*readRms.rmsVal,2));
   Voltages.add_value(540.0*readRms.rmsVal);
+}
+
+void sendJson(){
+  DynamicJsonDocument doc(2048);
+  JsonArray rpm_data = doc.createNestedArray("rpm_data");
+  JsonArray voltage_data = doc.createNestedArray("voltage_data");
+  JsonArray xAcc_data = doc.createNestedArray("xAcc_data");
+  JsonArray yAcc_data = doc.createNestedArray("yAcc_data");
+  JsonArray zAcc_data = doc.createNestedArray("zAcc_data");
+  JsonArray temperature_data = doc.createNestedArray("temperature_data");
+//  JsonArray timestampMcu_data = doc.createNestedArray("timestampMcu_data");
+  
+  for(int i=0;i<ARRAY_SIZE;i++){
+//    rpm_data.add(Rotations.get_value_at_index(i));
+//    voltage_data.add(Voltages.get_value_at_index(i));
+//    xAcc_data.add(Accx.get_value_at_index(i));
+//    yAcc_data.add(Accy.get_value_at_index(i));
+//    zAcc_data.add(Accz.get_value_at_index(i));
+//    temperature_data.add(Temperatures.get_value_at_index(i));
+//    timestampMcu_data.add(Timestamps.get_value_at_index(i));
+    int res=0;
+    res += addValue(Rotations.get_value_at_index(i),rpm_data);
+    res += addValue(Voltages.get_value_at_index(i),voltage_data);
+    res += addValue(Accx.get_value_at_index(i),xAcc_data);
+    res += addValue(Accy.get_value_at_index(i),yAcc_data);
+    res += addValue(Accz.get_value_at_index(i),zAcc_data);
+    res += addValue(Temperatures.get_value_at_index(i),temperature_data);
+    if(res==0)
+      break;
+  }
+  
+  Rotations.clear_array();
+  Voltages.clear_array();
+  Accx.clear_array();
+  Accy.clear_array();
+  Accz.clear_array();
+  Temperatures.clear_array();
+//  Timestamps.clear_array();
+
+  String json;
+  serializeJson(doc, json);
+
+  sendPacket(json);
+  Serial.println(json);
+  Serial.print("Memory usage: "); Serial.println(doc.memoryUsage());
+}
+
+int addValue(float value,JsonArray json_array){
+  if(value!=-200){
+    json_array.add(value);
+    return 1; 
+  }
+  return 0;
 }
 
 void sendPacket(String message) {
