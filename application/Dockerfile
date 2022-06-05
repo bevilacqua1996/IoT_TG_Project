@@ -25,4 +25,8 @@ ENV MAVEN_CONFIG "$USER_HOME_DIR/.m2"
 RUN ls /opt/API/SensorDataAPI && cd /opt/API/SensorDataAPI && mvn clean install
 WORKDIR /opt/API/SensorDataAPI/target
 EXPOSE $PORT
-CMD ["java", "-jar", "-Dserver.port=${PORT}", "-Xmx256m", "SensorDataAPI-0.0.1-SNAPSHOT.jar"]
+CMD ["java", "-jar", "-Dserver.port=${PORT}", \
+  "-Dspring.datasource.url=jdbc:${DATABASE_URL}", \
+  "-Dspring.datasource.username=${DATABASE_USERNAME}", \
+  "-Dspring.datasource.password=${DATABASE_PASSWORD}", \
+  "-Xmx256m", "SensorDataAPI-0.0.1-SNAPSHOT.jar"]
