@@ -14,6 +14,9 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include <ArduinoJson.h>
+#include <NTPClient.h>
+#include <WiFi.h>
+#include <WiFiUDP.h>
 
 //#define ROTATIONS_CODE 1
 //#define VOLTAGE_CODE 2
@@ -47,10 +50,16 @@ volatile unsigned int counter = 0;
 String rssi = "RSSI --";
 String packSize = "--";
 String packet;
-//const String codes[6] =  {ROTATIONS_CODE,VOLTAGE_CODE,ACC_X_CODE,ACC_Y_CODE,ACC_Z_CODE,TEMPERATURE_CODE};
+int pkg_id=0;
+
+const char* ntpServer = "pool.ntp.org";
+const long  gmtOffset_sec = 0;
+const int   daylightOffset_sec = 3600;
+extern const char* ssid;
+extern const char* password;
 
 //const long DELAY_ = 60000;
-const long DELAY_ = 2000;
+const long DELAY_ = 200;
 const long VOLT_LOOP_TIME_ = 500;
 const long OPT_LOOP_TIME_ = 500;
 unsigned long last_t_task1 = 0;
@@ -90,7 +99,7 @@ static String tmp="";
 
 class SensorValues{
   public:
-    SensorValues(unsigned short array_size, unsigned short factor, char code){
+    SensorValues(unsigned short array_size, unsigned short factor, short code){
       this->array_size = array_size;
       this->values = new int[array_size];
       std::fill_n(this->values,array_size,-200);
@@ -122,41 +131,50 @@ class SensorValues{
       index=0;
     }
 
-//    String publish_values() volatile{
-//      String str_values = "";
-//      while(is_writing){
-//        //vTaskDelay( _1ms );
-//        //taskYIELD();
-//      }
-//      is_reading = 1;
-//      for(int i=0;i<this->array_size;i++){
-//        if(this->values[i]==-200)
-//          break;
-//        //str_values += String(this->values[i]/float(this->factor)) + " ,";
-////        String str_val = String(this->code) + " : " + String(this->values[i]/float(this->factor));
-////        str_values += str_val + ",";
-//        str_values += String(this->code) + " : " + String(this->values[i]/float(this->factor)) + ",";
-//        //this->send_packet(str_val);
-//        this->values[i]=-200;
-//        //taskYIELD();
-//      }
-//      this->index = 0;
-//      is_reading = 0;
-//      return str_values;
-//      //Serial.println(str_values);
-//    }
+    String publish_values() volatile{
+      String str_values = "";
+      while(is_writing){
+        vTaskDelay( _1ms );
+        //taskYIELD();
+      }
+      is_reading = 1;
+      DynamicJsonDocument msg(1024);
+      msg["code"] = this->code;
+      msg["factor"] = this->factor;
+      msg["ts"] = time(NULL);
+      JsonArray var_data = msg.createNestedArray("data");
+      for(int i=0;i<this->array_size;i++){
+        if(this->values[i]==-200)
+          break;
+        var_data.add(this->values[i]);
+        this->values[i]=-200;
+      }
+      this->index = 0;
+
+      String json;
+      serializeJson(msg, json);
+      send_packet(json);
+      Serial.println(json);
+
+      Serial.print("Memory usage: "); Serial.println(msg.memoryUsage());
+      Serial.print("Sensor Json size: ");Serial.println(json.length());
+      
+      is_reading = 0;
+      return json;
+      //Serial.println(str_values);
+    }
 
     void send_packet(String message) volatile{
       // send packet
       LoRa.beginPacket();
       LoRa.setTxPower(14,RF_PACONFIG_PASELECT_PABOOST);
       LoRa.print(message);
-      LoRa.endPacket();
-      counter++;
+      LoRa.endPacket(true);
+//      counter++;
     }
     
     volatile bool is_reading=0;
-    volatile bool is_writing=0;
+    volatile bool is_writing=1;
   private:
     volatile unsigned short index;
     volatile int *values;
@@ -176,6 +194,8 @@ volatile SensorValues Voltages = SensorValues(ARRAY_SIZE,1000,VOLTAGE_CODE);
 void setup()
 {
   attachInterrupt(digitalPinToInterrupt(OPTICAL_PIN), get_delta, FALLING);
+
+  config_rtc();
 
   xTaskCreatePinnedToCore(
     Task1code, /* Function to implement the task */
@@ -254,21 +274,71 @@ void Task1code( void * parameter) {
   }
 }
 
+void config_rtc(){
+  // Connect to Wi-Fi
+  Serial.print("Connecting to ");
+  Serial.println(ssid);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("");
+  Serial.println("WiFi connected.");
+  
+  // Init and get the time
+  configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+  struct tm timeinfo;
+  if(!getLocalTime(&timeinfo)){
+    Serial.println("Failed to obtain time");
+  }
+
+  //disconnect WiFi as it's no longer needed
+  WiFi.disconnect(true);
+  WiFi.mode(WIFI_OFF);
+}
+
+//void printLocalTime(){
+//  struct tm timeinfo;
+//  if(!getLocalTime(&timeinfo)){
+//    Serial.println("Failed to obtain time");
+//    return;
+//  }
+//  Serial.println(&timeinfo, "%A, %B %d %Y %H:%M:%S");
+//  Serial.print("Day of week: ");
+//  Serial.println(&timeinfo, "%A");
+//  Serial.print("Month: ");
+//  Serial.println(&timeinfo, "%B");
+//  Serial.print("Day of Month: ");
+//  Serial.println(&timeinfo, "%d");
+//  Serial.print("Year: ");
+//  Serial.println(&timeinfo, "%Y");
+//  Serial.print("Hour: ");
+//  Serial.println(&timeinfo, "%H");
+//  Serial.print("Hour (12 hour format): ");
+//  Serial.println(&timeinfo, "%I");
+//  Serial.print("Minute: ");
+//  Serial.println(&timeinfo, "%M");
+//  Serial.print("Second: ");
+//  Serial.println(&timeinfo, "%S");
+//
+//  Serial.println("Time variables");
+//  char timeHour[3];
+//  strftime(timeHour,3, "%H", &timeinfo);
+//  Serial.println(timeHour);
+//  char timeWeekDay[10];
+//  strftime(timeWeekDay,10, "%A", &timeinfo);
+//  Serial.println(timeWeekDay);
+//  Serial.println();
+//}
+
 void temperatureSensor() {
   DS18B20.requestTemperatures();       // send the command to get temperatures
   tempC = DS18B20.getTempCByIndex(0);  // read temperature in °C
-//  sendPacket(String(TEMPERATURE_CODE) + " : " + String(tempC));
-//  delay(DELAY_);
   Temperatures.add_value(tempC);
 }
 
 void setup_imu(){
-//  Wire.begin();                
-//  // enable to measute g data
-//  Wire.beginTransmission(ADXAddress);
-//  Wire.write(Register_2D);
-//  Wire.write(8);                //measuring enable
-//  Wire.endTransmission();     // stop transmitting
   Wire.begin(4, 15, 100000); // sda, scl, clock speed
   Wire.beginTransmission(ADXAddress);
   Wire.write(0x6B);  // PWR_MGMT_1 register
@@ -343,61 +413,60 @@ void voltageSensor() {
 }
 
 void sendJson(){
-  DynamicJsonDocument sensors_msg(2048);
+//  DynamicJsonDocument sensors_msg(2048);
 //  sensors_msg["type"]='s';
 //  JsonArray timestampMcu_data = sensors_msg.createNestedArray(String(TIME_CODE));
-  JsonArray rpm_data = sensors_msg.createNestedArray(String(ROTATIONS_CODE));
-  JsonArray voltage_data = sensors_msg.createNestedArray(String(VOLTAGE_CODE));
-  JsonArray xAcc_data = sensors_msg.createNestedArray(String(ACC_X_CODE));
-  JsonArray yAcc_data = sensors_msg.createNestedArray(String(ACC_Y_CODE));
-  JsonArray zAcc_data = sensors_msg.createNestedArray(String(ACC_Z_CODE));
-  JsonArray temperature_data = sensors_msg.createNestedArray(String(TEMPERATURE_CODE));
-  JsonArray factors = sensors_msg.createNestedArray(String(FACTORS_CODE));
-  factors[TIME_CODE] = Timestamps.get_factor();
-  factors[ROTATIONS_CODE] = Rotations.get_factor();
-  factors[VOLTAGE_CODE] = Voltages.get_factor();
-  factors[ACC_X_CODE] = Accx.get_factor();
-  factors[ACC_Y_CODE] = Accy.get_factor();
-  factors[ACC_Z_CODE] = Accz.get_factor();
-  factors[TEMPERATURE_CODE] = Temperatures.get_factor();
-  for(int i=0;i<ARRAY_SIZE;i++){
-    int res=0;
-//    res += addValue(Timestamps.get_value_at_index(i),timestampMcu_data);
-    res += addValue(Rotations.get_value_at_index(i),rpm_data);
-    res += addValue(Voltages.get_value_at_index(i),voltage_data);
-    res += addValue(Accx.get_value_at_index(i),xAcc_data);
-    res += addValue(Accy.get_value_at_index(i),yAcc_data);
-    res += addValue(Accz.get_value_at_index(i),zAcc_data);
-    res += addValue(Temperatures.get_value_at_index(i),temperature_data);
-    if(res==0)
-      break;
-  }
-
-  String json;
-  serializeJson(sensors_msg, json);
-  sendPacket(json);
-  Serial.println(json);
-
-//  Timestamps.clear_array();
-  Rotations.clear_array();
-  Voltages.clear_array();
-  Accx.clear_array();
-  Accy.clear_array();
-  Accz.clear_array();
-  Temperatures.clear_array();
-
-  DynamicJsonDocument tstamps_msg(1024);
-  tstamps_msg["type"]='t';
-  JsonArray timestampMcu_data = tstamps_msg.createNestedArray(String(TIME_CODE));
-  for(int i=0;i<ARRAY_SIZE;i++){
-    int res=0;
-    res = addValue(Timestamps.get_value_at_index(i),timestampMcu_data);
-    if(res==0)
-      break;
-  }
-  
-  Serial.print("Memory usage: "); Serial.println(sensors_msg.memoryUsage());
-  Serial.print("Sensors Json size: ");Serial.println(json.length());
+//  JsonArray rpm_data = sensors_msg.createNestedArray(String(ROTATIONS_CODE));
+//  JsonArray voltage_data = sensors_msg.createNestedArray(String(VOLTAGE_CODE));
+//  JsonArray xAcc_data = sensors_msg.createNestedArray(String(ACC_X_CODE));
+//  JsonArray yAcc_data = sensors_msg.createNestedArray(String(ACC_Y_CODE));
+//  JsonArray zAcc_data = sensors_msg.createNestedArray(String(ACC_Z_CODE));
+//  JsonArray temperature_data = sensors_msg.createNestedArray(String(TEMPERATURE_CODE));
+//  JsonArray factors = sensors_msg.createNestedArray(String(FACTORS_CODE));
+//  factors[TIME_CODE] = Timestamps.get_factor();
+//  factors[ROTATIONS_CODE] = Rotations.get_factor();
+//  factors[VOLTAGE_CODE] = Voltages.get_factor();
+//  factors[ACC_X_CODE] = Accx.get_factor();
+//  factors[ACC_Y_CODE] = Accy.get_factor();
+//  factors[ACC_Z_CODE] = Accz.get_factor();
+//  factors[TEMPERATURE_CODE] = Temperatures.get_factor();
+//  for(int i=0;i<ARRAY_SIZE;i++){
+//    int res=0;
+////    res += addValue(Timestamps.get_value_at_index(i),timestampMcu_data);
+//    res += addValue(Rotations.get_value_at_index(i),rpm_data);
+//    res += addValue(Voltages.get_value_at_index(i),voltage_data);
+//    res += addValue(Accx.get_value_at_index(i),xAcc_data);
+//    res += addValue(Accy.get_value_at_index(i),yAcc_data);
+//    res += addValue(Accz.get_value_at_index(i),zAcc_data);
+//    res += addValue(Temperatures.get_value_at_index(i),temperature_data);
+//    if(res==0)
+//      break;
+//  }
+//
+//  String json;
+//  serializeJson(sensors_msg, json);
+//  sendPacket(json);
+//  Serial.println(json);
+//
+////  Timestamps.clear_array();
+//  Rotations.clear_array();
+//  Voltages.clear_array();
+//  Accx.clear_array();
+//  Accy.clear_array();
+//  Accz.clear_array();
+//  Temperatures.clear_array();
+//
+//  DynamicJsonDocument tstamps_msg(1024);
+//  tstamps_msg["type"]='t';
+//  JsonArray timestampMcu_data = tstamps_msg.createNestedArray(String(TIME_CODE));
+//  for(int i=0;i<ARRAY_SIZE;i++){
+//    int res=0;
+//    res = addValue(Timestamps.get_value_at_index(i),timestampMcu_data);
+//    if(res==0)
+//      break;
+//  }
+//
+  publish_all_values();
 }
 
 int addValue(float value,JsonArray json_array){
@@ -418,20 +487,21 @@ void sendPacket(String message) {
   counter++;
 }
 
-//void publish_all_values(){
-//  Rotations.publish_values();
-//  delay(DELAY_);
-//  Temperatures.publish_values();
-//  delay(DELAY_);
-//  Accx.publish_values();
-//  delay(DELAY_);
-//  Accy.publish_values();
-//  delay(DELAY_);
-//  Accz.publish_values();
-//  delay(DELAY_);
-//  Voltages.publish_values();
-//  delay(DELAY_);
-//}
+void publish_all_values(){
+  Rotations.publish_values();
+  delay(DELAY_);
+  Temperatures.publish_values();
+  delay(DELAY_);
+  Accx.publish_values();
+  delay(DELAY_);
+  Accy.publish_values();
+  delay(DELAY_);
+  Accz.publish_values();
+  delay(DELAY_);
+  Voltages.publish_values();
+  delay(DELAY_);
+  counter += 6; 
+}
 
 void logo()
 {
