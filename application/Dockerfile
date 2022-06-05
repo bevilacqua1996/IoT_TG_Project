@@ -1,7 +1,7 @@
 FROM openjdk:11
 
 RUN mkdir /opt/API
-COPY ./* /opt/API/
+COPY ./SensorDataAPI /opt/API/SensorDataAPI
 
 # Downloading and installing Maven
 ARG MAVEN_VERSION=3.6.3
@@ -22,7 +22,7 @@ RUN mkdir -p /usr/share/maven /usr/share/maven/ref \
 ENV MAVEN_HOME /usr/share/maven
 ENV MAVEN_CONFIG "$USER_HOME_DIR/.m2"
 
-RUN ls /opt/API/ && cd /opt/API/ && mvn clean install
-WORKDIR /opt/API/target
+RUN ls /opt/API/SensorDataAPI && cd /opt/API/SensorDataAPI && mvn clean install
+WORKDIR /opt/API/SensorDataAPI/target
 EXPOSE $PORT
 CMD ["java", "-jar", "-Dserver.port=${PORT}", "-Xmx256m", "SensorDataAPI-0.0.1-SNAPSHOT.jar"]
