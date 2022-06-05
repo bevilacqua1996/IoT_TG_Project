@@ -33,43 +33,47 @@ void logo(){
 }
 
 void buildAndSendLoRaData(){
-
-  String json = buildJSON(packet);
-  Serial.println(json);
+    Serial.println(packet);
+//  String json = buildJSON(packet);
+   StaticJsonDocument<2048> doc;
+   deserializeJson(doc, packet);
+   int vf = doc["voltage_factor"];
+   Serial.print("Voltage factor: ");Serial.println(vf);
   
   int httpResponseCode;
   
   if(WiFi.status()== WL_CONNECTED){
-    httpResponseCode = postData(json);
+//    httpResponseCode = postData(json);
+     httpResponseCode = postData(packet);
   } else {
     httpResponseCode = 500;
   }
 
-  String data_type = getValue(packet, 0);
-  String type_str;
-  String data_str = getValue(packet, 1);
-  if(data_type.toInt() == ROTATIONS_CODE) {
-    type_str = "Rotations";
-  } else if(data_type.toInt() == VOLTAGE_CODE) {
-    type_str = "Voltage";
-  } else if(data_type.toInt() == ACC_X_CODE) {
-    type_str = "Xacc";
-  } else if(data_type.toInt() == ACC_Y_CODE) {
-    type_str = "Yacc";
-  } else if(data_type.toInt() == ACC_Z_CODE) {
-    type_str = "Zacc";
-  } else if(data_type.toInt() == TEMPERATURE_CODE) {
-    type_str = "Temperature Cº";
-  }
-  
-  Heltec.display->clear();
-  Heltec.display->setTextAlignment(TEXT_ALIGN_LEFT);
-  Heltec.display->setFont(ArialMT_Plain_10);
-  Heltec.display->drawString(0 , 15 , "Received "+ packSize + " bytes");
-  Heltec.display->drawString(0 , 40 , "Http Status Code: "+ String(httpResponseCode));
-  Heltec.display->drawStringMaxWidth(0 , 26 , 128, type_str + " : " + data_str);
-  Heltec.display->drawString(0, 0, rssi);  
-  Heltec.display->display();
+//  String data_type = getValue(packet, 0);
+//  String type_str;
+//  String data_str = getValue(packet, 1);
+//  if(data_type.toInt() == ROTATIONS_CODE) {
+//    type_str = "Rotations";
+//  } else if(data_type.toInt() == VOLTAGE_CODE) {
+//    type_str = "Voltage";
+//  } else if(data_type.toInt() == ACC_X_CODE) {
+//    type_str = "Xacc";
+//  } else if(data_type.toInt() == ACC_Y_CODE) {
+//    type_str = "Yacc";
+//  } else if(data_type.toInt() == ACC_Z_CODE) {
+//    type_str = "Zacc";
+//  } else if(data_type.toInt() == TEMPERATURE_CODE) {
+//    type_str = "Temperature Cº";
+//  }
+//  
+//  Heltec.display->clear();
+//  Heltec.display->setTextAlignment(TEXT_ALIGN_LEFT);
+//  Heltec.display->setFont(ArialMT_Plain_10);
+//  Heltec.display->drawString(0 , 15 , "Received "+ packSize + " bytes");
+//  Heltec.display->drawString(0 , 40 , "Http Status Code: "+ String(httpResponseCode));
+//  Heltec.display->drawStringMaxWidth(0 , 26 , 128, type_str + " : " + data_str);
+//  Heltec.display->drawString(0, 0, rssi);  
+//  Heltec.display->display();
 }
 
 void cbk(int packetSize) {
@@ -119,8 +123,7 @@ void setup() {
 
 void loop() {
   int packetSize = LoRa.parsePacket();
-//  Serial.println("A");
-  if (packetSize) { cbk(packetSize);  }
+  if (packetSize) { Serial.println(packetSize); cbk(packetSize);  }
   delay(10);
 //  delay(1000);
 }
