@@ -1,4 +1,3 @@
-
 /*
  * Camada de comunicação LoRa e API
  * 

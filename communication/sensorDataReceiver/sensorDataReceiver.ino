@@ -9,7 +9,7 @@
 #include "sensorDataJSON.h"
 #include "restMapping.h"
 #include "support.h"
-//#include <List.hpp>
+#include <TimeLib.h>
 
 #define TIME_CODE 0
 #define ROTATIONS_CODE 1
@@ -20,6 +20,7 @@
 #define TEMPERATURE_CODE 6
 
 #define NUM_OF_PACKETS 7
+#define len(arr) sizeof (arr)/sizeof (arr[0])
 
 //#include <WiFi.h>
 
@@ -37,6 +38,9 @@ unsigned long tempo;
 extern const char* ssid;
 extern const char* password;
 
+//List<String> packs;
+//List<String> packsSent;
+volatile bool canSendPacket = false;
 
 void logo(){
   Heltec.display->clear();
@@ -47,26 +51,34 @@ void logo(){
 void buildAndSendLoRaData(){
   //String json = buildJSON(packet);
   //int httpResponseCode;
-  if(packetsReceived >= NUM_OF_PACKETS){
-    int httpResponseCode = sendJson();
-    displayData(httpResponseCode);
-    packetsReceived = 0;
+  //if(packetsReceived >= NUM_OF_PACKETS){
+  //int packsSize = packs.getSize();
+  for(int i=0;i<NUM_OF_PACKETS;i++){
+    int httpResponseCode;
+    String m = "packet [" + String(i) + "] = " + packets[i];
+    Serial.println(m);
+    tempo = millis();
+    if(WiFi.status()== WL_CONNECTED)
+      sendJson(packets[i]);
+    else
+      httpResponseCode = 500;
+    displayData(httpResponseCode, packets[i]);
+    Serial.print("Loop time: ");  Serial.println(millis()-tempo);  /* Serial.println(tempo); */
   }
+
+  packetsReceived = 0;
+  canSendPacket = false;
 }
 
-void displayData(int httpResponseCode){
-//  int value =  doc["data"][0];
-  
-  //for(int i=0;i<packetsReceived;i++){
-  for(int i=0;i<NUM_OF_PACKETS;i++){
-    String m = "JSON [" + String(i) + "] = " + packets[i];
-    Serial.println(m);
-    
+void displayData(int httpResponseCode, String json){  
     DynamicJsonDocument doc(1024);
-    deserializeJson(doc, packets[i]);
+    //deserializeJson(doc, pckt);
+    deserializeJson(doc, json);
 
+    int id = doc["id"];
     int code = doc["code"];
     int value = doc["data"][0];
+
     //Serial.print("Value: ");Serial.println(value);
     String data_str = String(value);
     String type_str;
@@ -81,7 +93,11 @@ void displayData(int httpResponseCode){
     } else if(code == ACC_Z_CODE) {
       type_str = "Zacc";
     } else if(code == TEMPERATURE_CODE) {
-      type_str = "Temp.: Cº";
+      type_str = "Temp. ºC:";
+    } else if(code == TIME_CODE){
+      type_str = "Time: ";
+      String hms = String((hour(value)-3)%24) + ":" + String(minute(value)) + ":" + String(second(value));
+      data_str = hms;
     }
     
     Heltec.display->clear();
@@ -92,56 +108,28 @@ void displayData(int httpResponseCode){
     Heltec.display->drawStringMaxWidth(0 , 26 , 128, type_str + " : " + data_str);
     Heltec.display->drawString(0, 0, rssi);  
     Heltec.display->display();
-    delay(100);
-  }
+    if(code == TIME_CODE)
+      delay(500);
+    else
+      delay(150);
+  //}
 }
 
-int sendJson(){
+int sendJson(String json){
   int httpResponseCode;
-  if(WiFi.status()== WL_CONNECTED){
-      //for(int i=0;i<sizeof(packets)/sizeof(packets[0]);i++){
-      for(int i=0;i<NUM_OF_PACKETS;i++){
-        httpResponseCode = postData(packets[i]);
-//        String m = "Packets[" + String(i) + "] = " + packets[i];
-//        Serial.println(m);
-        delay(300);
-//        delay(10);
-      }
-  }
-  else {
-      httpResponseCode = 500;
-  }
+//  if(WiFi.status()== WL_CONNECTED){
+//      httpResponseCode = postData(json);
+//  }
+//  else {
+//      httpResponseCode = 500;
+//  }
+  httpResponseCode = postData(json);
   return httpResponseCode;
 }
 
-void cbk(int packetSize) {
-  packet ="";
-  packSize = String(packetSize,DEC);
-  for (int i = 0; i < packetSize; i++) { packet += (char) LoRa.read(); }
-  rssi = "RSSI " + String(LoRa.packetRssi(), DEC) ;
-  //buildAndSendLoRaData();
-
-  DynamicJsonDocument doc(1024);
-  deserializeJson(doc, packet);
-
-  int id = doc["id"];
-  int code = doc["code"];
-  //Serial.println(id); 
-  if(pkg_id == id || pkg_id==-1){
-    if(pkg_id==-1) pkg_id = id;    
-    //Serial.println(code); 
-    packetsReceived++;
-    packets[code] = packet;
-  }
-  else{
-    pkg_id = id;
-  }
-}
-
-
 void onReceive(int packetSize){
-  packet_size = packetSize;
   if (packetSize) {
+    packet_size = packetSize;
     //tempo = millis();
     //Serial.print("Packet size: ");Serial.println(packetSize); 
     cbk(packetSize);
@@ -149,6 +137,26 @@ void onReceive(int packetSize){
   }
 }
 
+void cbk(int packetSize) {
+  packet ="";
+  packSize = String(packetSize,DEC);
+  for (int i = 0; i < packetSize; i++) { packet += (char) LoRa.read(); }
+  rssi = "RSSI " + String(LoRa.packetRssi(), DEC) ;
+  //Serial.println(packet);
+
+  DynamicJsonDocument doc(2048);
+  deserializeJson(doc, packet);
+
+  int id = doc["id"];
+  int code = doc["code"];
+ 
+  packets[code] = packet;
+  packetsReceived++;
+  if(packetsReceived>=NUM_OF_PACKETS){
+    canSendPacket = true;
+    packetsReceived = 0;
+  }
+}
 
 void wifiConfigure() {
   WiFi.begin(ssid, password);
@@ -200,12 +208,8 @@ void loop() {
 //    tempo = millis();
 //  }
   delay(10);
-////  delay(1000);
-  
-  if(packet_size){
-    //tempo = millis();
-    //Serial.println(millis());
+
+  if(canSendPacket){
     buildAndSendLoRaData();
-    //Serial.print("Loop time: ");  Serial.println(millis()-tempo);
   }
 }
