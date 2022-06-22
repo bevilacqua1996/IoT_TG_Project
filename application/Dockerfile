@@ -29,4 +29,4 @@ CMD ["java", "-jar", "-Dserver.port=${PORT}", \
   "-Dspring.datasource.url=${DATABASE_APP_URL}", \
   "-Dspring.datasource.username=${DATABASE_USERNAME}", \
   "-Dspring.datasource.password=${DATABASE_PASSWORD}", \
-  "-Xmx256m", "SensorDataAPI-0.0.1-SNAPSHOT.jar"]
+  "-Xmx256m", "SensorDataAPI-1.0.0-SNAPSHOT.jar"]
