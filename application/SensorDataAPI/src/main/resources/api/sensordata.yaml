@@ -88,74 +88,24 @@ securityDefinitions:
       'write:sensordata': escreve uma entidade sensordata
 
 definitions:
-  SensorDataModel:
-    type: object
-    properties:
-      rpm:
-        type: integer
-        format: int32
-      timestampMicrocontroler:
-        type: integer
-        format: int64
-      voltage:
-        type: number
-        format: double
-      xAcc:
-        type: number
-        format: double
-      yAcc:
-        type: number
-        format: double
-      zAcc:
-        type: number
-        format: double
-      temperature:
-        type: number
-        format: double
-      timestamp:
-        type: integer
-        format: int64
-      date:
-        type: string
 
   SensorDataList:
     type: object
     properties:
-      rpm:
+      id:
+        type: integer
+        format: int32
+      code:
+        type: integer
+        format: int32
+      factor:
+        type: integer
+        format: int32
+      data:
         type: array
         items:
           type: integer
           format: int32
-      timestampMicrocontroler:
-        type: array
-        items:
-          type: integer
-          format: int64
-      voltage:
-        type: array
-        items:
-          type: number
-          format: double
-      xAcc:
-        type: array
-        items:
-          type: number
-          format: double
-      yAcc:
-        type: array
-        items:
-          type: number
-          format: double
-      zAcc:
-        type: array
-        items:
-          type: number
-          format: double
-      temperature:
-        type: array
-        items:
-          type: number
-          format: double
 
 externalDocs:
   description: Find out more about our project

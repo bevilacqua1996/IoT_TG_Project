@@ -2,7 +2,6 @@ package com.sensor.data.controller;
 
 import com.sensor.data.api.SensorDataApi;
 import com.sensor.data.api.model.SensorDataList;
-import com.sensor.data.api.model.SensorDataModel;
 import com.sensor.data.service.SensorDataService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
