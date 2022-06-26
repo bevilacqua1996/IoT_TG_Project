@@ -6,13 +6,13 @@ Camada que tem como objetivo a implementação do firmware responsável pela col
 
 A camada de envio (*sender*) será utilizada para a leitura de dados dos sensores e envio por protocolo LoRa para um *Gateway* responável pelo roteamento desses dados para o banco de dados.
 
-**OBS**: Não se esqueça de adicionar as bibliotecas relacionadas à extração de dados dos sensores da camada *sensors*. É aqui que elas deverão ser utilizadas.
+**OBS**: Adicionar as bibliotecas relacionadas à extração de dados dos sensores da camada *sensors*. É aqui que elas deverão ser utilizadas.
 
 ## Sensor Data Receiver
 
 Esta é a camada de implementação do *Gateway*. O *Gateway* será responsável pelo tratamento do pacote de informações enviado pelo *Sender* e envio para a API via método POST.
 
-**OBS**: Não se esqueça de atualizar as constantes de SSID e PASSWORD no arquivo *SensorDataReceiver.ino* com informações do seu roteador para configuração da conexão WiFi.
+**OBS**: Deve-se atualizar as constantes de SSID e PASSWORD no arquivo *info.c* com informações do seu roteador para configuração da conexão WiFi.
 
 ### Support
 
@@ -24,9 +24,10 @@ Biblioteca de construção do objeto JSON enviado para a API via método POST.
 
 **Atributos:**
 
-- rpm;
-- voltage;
-- timestamp.
+- id;
+- code;
+- factor;
+- data.
 
 ### Rest Mapping
 
