@@ -2,6 +2,9 @@
 
 Camada que tem como objetivo a implementação do firmware responsável pela coleta dos dados dos sensores e envio para API.
 
+![lora_communication](https://user-images.githubusercontent.com/18063196/175836928-eac45e72-1856-4e28-8214-740d84974c4c.png)
+
+
 ## Sensor Data Sender
 
 A camada de envio (*sender*) será utilizada para a leitura de dados dos sensores e envio por protocolo LoRa para um *Gateway* responável pelo roteamento desses dados para o banco de dados.
