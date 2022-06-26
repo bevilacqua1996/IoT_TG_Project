@@ -7,7 +7,9 @@ API responsável pelo *storage* dos dados no banco de dados e disponibilização
 **OBS**: Não se esqueça de preencher as credenciais do banco de dados no arquivo *application.properties*. As credenciais podem ser encontradas na plataforma do Heroku na aplicação *sensordataapi*.
 
 ### Deploy e Release de nova versão
-No momento a API está rodando na plataforma em nuvem do *Heroku*. Para a construção da imagem e execução do container na nuvem, sugere-se que se siga o passo a passo abaixo com os comandos necessários para o deploy da API.
+
+#### Deploy Manual
+No momento a API está rodando na plataforma em nuvem do *Heroku*. Para a construção da imagem de forma local e execução do container na nuvem, sugere-se que se siga o passo a passo abaixo com os comandos necessários para o deploy da API.
 
 *Pré requisitos*:
 - Heroku CLI [Download](https://devcenter.heroku.com/articles/heroku-cli#download-and-install);
@@ -23,6 +25,14 @@ heroku container:push web --app sensordataapi
 heroku container:release web --app sensordataapi
 ```
 
+#### Deploy automático
+Visando a automatização do processo de build e deploy também temos uma esteira automatizada de CI e CD (Continuous Integration e Continuous Deploy) integrada com o sistema do Heroku que fará uso de dois arquivos de configuração principais: *heroku.yml* e *Dockerfile*. O Arquivo de configuração do Heroku se encarregará de referenciar o diretório onde o *Dockerfile* de configuração está armazendao. O *Dockerfile*, por sua vez, é o arquivo que guarda as configurações do ambiente 'containerizado' que fará o build e execução da API na nuvem.
+
+Para execução da esteira, rodar o deploy a partir da plataforma do Heroku apontando para a branch na qual se deseja construir a API. Abaixo temos um diagrama de como funciona a esteira atualmente.
+
+![deploy_strategy](https://user-images.githubusercontent.com/18063196/175832026-5a401e55-5912-498d-a219-a4d22effd2dc.png)
+
+#### Comandos úteis do Heroku Client
 Outros comandos interessantes para gerenciamento do container na nuvem são os seguintes:
 
 ```
