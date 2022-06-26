@@ -9,7 +9,7 @@ Abaixo podemos ver um diagrama de classes que detalha a interação entre as cla
 ![diagrama_classes](https://user-images.githubusercontent.com/18063196/175832143-5de96efc-f9c8-4982-a7bc-b2ff86dc2e4f.png)
 
 
-**OBS**: Não se esqueça de preencher as credenciais do banco de dados no arquivo *application.properties*. As credenciais podem ser encontradas na plataforma do Heroku na aplicação *sensordataapi*.
+**OBS**: As credenciais do banco de dados podem ser encontradas na plataforma do Heroku na aplicação *sensordataapi* para preenchimento do arquivo *application.properties*. Para execução na nuvem, estas variáveis já estão configuradas como variáveis de ambiente no *container* montado no Heroku.
 
 ### Deploy e Release de nova versão
 
