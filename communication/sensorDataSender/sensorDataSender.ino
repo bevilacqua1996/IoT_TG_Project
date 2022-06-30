@@ -12,13 +12,26 @@
 #include <Wire.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
+#include <ArduinoJson.h>
+#include <NTPClient.h>
+#include <WiFi.h>
+#include <WiFiUDP.h>
 
+//#define ROTATIONS_CODE 1
+//#define VOLTAGE_CODE 2
+//#define ACC_X_CODE 3
+//#define ACC_Y_CODE 4
+//#define ACC_Z_CODE 5
+//#define TEMPERATURE_CODE 6
+
+#define TIME_CODE 0
 #define ROTATIONS_CODE 1
 #define VOLTAGE_CODE 2
 #define ACC_X_CODE 3
 #define ACC_Y_CODE 4
 #define ACC_Z_CODE 5
 #define TEMPERATURE_CODE 6
+//#define FACTORS_CODE 'F'
 
 #define BAND    915E6  //you can set band here directly,e.g. 868E6,915E6
 
@@ -30,10 +43,19 @@
 
 #define TEMPERATURE_PIN 32 // ESP32 pin GIOP33 connected to DS18B20 sensor's DQ pin
 
+#define ARRAY_SIZE 15
+
 volatile unsigned int counter = 0;
 String rssi = "RSSI --";
 String packSize = "--";
 String packet;
+int pkg_id=0;
+
+const char* ntpServer = "pool.ntp.org";
+const long  gmtOffset_sec = 0;
+const int   daylightOffset_sec = 3600;
+extern const char* ssid;
+extern const char* password;
 
 //const long DELAY_ = 60000;
 const long DELAY_ = 2000;
@@ -69,6 +91,7 @@ const TickType_t _1s = 1000 / portTICK_PERIOD_MS;
 const TickType_t _1ms = 1 / portTICK_PERIOD_MS;
 const TickType_t _10ms = 10 / portTICK_PERIOD_MS;
 const TickType_t _100ms = 100 / portTICK_PERIOD_MS;
+const TickType_t _200ms = 200 / portTICK_PERIOD_MS;
 const TickType_t _5s = 5000 / portTICK_PERIOD_MS; 
 const TickType_t _10s = 10000 / portTICK_PERIOD_MS; 
 TaskHandle_t Task1;
@@ -76,10 +99,12 @@ static String tmp="";
 
 class SensorValues{
   public:
-    SensorValues(unsigned short array_size, unsigned short factor, unsigned char code){
+    SensorValues(unsigned short array_size, unsigned short factor, short code){
       this->array_size = array_size;
       this->values = new int[array_size];
+//      this->timestamps = new uint32_t[array_size];
       std::fill_n(this->values,array_size,-200);
+//      std::fill_n(this->timestamps,array_size,-200);
       this->factor = factor;
       this->code = code;
     }
@@ -89,37 +114,73 @@ class SensorValues{
         if(this->index < this->array_size){
           is_writing = 1;
           this->values[index] = value*factor;
+//          this->timestamps[index] = time(NULL);
           this->index++;
           is_writing = 0;
         }
       }
     }
-    
-    float get_value_at_index(short index){
+
+    void add_int_value(uint32_t value) volatile{
+      if(!is_reading){
+        if(this->index < this->array_size){
+          is_writing = 1;
+          this->values[index] = value*factor;
+          this->index++;
+          is_writing = 0;
+        }
+      }
+    }
+  
+    float get_value_at_index(short index) volatile{
       return this->values[index];
+    }
+
+//    uint32_t get_timestamp_at_index(short index) volatile{
+//      return this->timestamps[index];
+//    }
+
+    short get_factor() volatile{
+      return this->factor;
+    }
+
+    void clear_array() volatile{
+      std::fill_n(values,array_size,-200);
+      index=0;
     }
 
     String publish_values() volatile{
       String str_values = "";
       while(is_writing){
-        //vTaskDelay( _1ms );
+        vTaskDelay( _1ms );
         //taskYIELD();
       }
       is_reading = 1;
+      DynamicJsonDocument msg(1024);
+      msg["id"] = pkg_id;
+      msg["code"] = this->code;
+      msg["factor"] = this->factor;
+      JsonArray var_data = msg.createNestedArray("data");
+//      JsonArray tStamps = msg.createNestedArray("ts");
       for(int i=0;i<this->array_size;i++){
         if(this->values[i]==-200)
           break;
-        //str_values += String(this->values[i]/float(this->factor)) + " ,";
-//        String str_val = String(this->code) + " : " + String(this->values[i]/float(this->factor));
-//        str_values += str_val + ",";
-        str_values += String(this->code) + " : " + String(this->values[i]/float(this->factor)) + ",";
-        //this->send_packet(str_val);
+        var_data.add(this->values[i]);
+//        tStamps.add(this->timestamps[i]);
         this->values[i]=-200;
-        //taskYIELD();
       }
       this->index = 0;
+
+      String json;
+      serializeJson(msg, json);
+      send_packet(json);
+      Serial.println(json);
+
+      Serial.print("Memory usage: "); Serial.println(msg.memoryUsage());
+      Serial.print("Sensor Json size: ");Serial.println(json.length());
+      
       is_reading = 0;
-      return str_values;
+      return json;
       //Serial.println(str_values);
     }
 
@@ -128,30 +189,34 @@ class SensorValues{
       LoRa.beginPacket();
       LoRa.setTxPower(14,RF_PACONFIG_PASELECT_PABOOST);
       LoRa.print(message);
-      LoRa.endPacket();
-      counter++;
+      LoRa.endPacket(true);
+//      counter++;
     }
     
-    volatile bool is_reading=1;
-    volatile bool is_writing=0;
+    volatile bool is_reading=0;
+    volatile bool is_writing=1;
   private:
     volatile unsigned short index;
     volatile int *values;
+//    volatile uint32_t* timestamps;
     volatile unsigned short array_size;
     volatile unsigned short factor;
-    unsigned char code;
+    char code;
 };
 
-volatile SensorValues Rotations = SensorValues(20,1000,ROTATIONS_CODE);
-volatile SensorValues Temperatures = SensorValues(20,100,TEMPERATURE_CODE);
-volatile SensorValues Accx = SensorValues(20,1000,ACC_X_CODE);
-volatile SensorValues Accy = SensorValues(20,1000,ACC_Y_CODE);
-volatile SensorValues Accz = SensorValues(20,1000,ACC_Z_CODE);
-volatile SensorValues Voltages = SensorValues(20,1000,VOLTAGE_CODE);
+volatile SensorValues Timestamps = SensorValues(ARRAY_SIZE,1,TIME_CODE);
+volatile SensorValues Rotations = SensorValues(ARRAY_SIZE,1000,ROTATIONS_CODE);
+volatile SensorValues Temperatures = SensorValues(ARRAY_SIZE,100,TEMPERATURE_CODE);
+volatile SensorValues Accx = SensorValues(ARRAY_SIZE,1000,ACC_X_CODE);
+volatile SensorValues Accy = SensorValues(ARRAY_SIZE,1000,ACC_Y_CODE);
+volatile SensorValues Accz = SensorValues(ARRAY_SIZE,1000,ACC_Z_CODE);
+volatile SensorValues Voltages = SensorValues(ARRAY_SIZE,1000,VOLTAGE_CODE);
 
 void setup()
 {
   attachInterrupt(digitalPinToInterrupt(OPTICAL_PIN), get_delta, FALLING);
+
+  config_rtc();
 
   xTaskCreatePinnedToCore(
     Task1code, /* Function to implement the task */
@@ -191,7 +256,8 @@ void setup()
   delay(1000);
 
   //pinMode(OPTICAL_PIN, INPUT);
-  
+  LoRa.setSpreadingFactor(7);
+  LoRa.setSignalBandwidth(250E3);
 }
 
 void loop()
@@ -203,14 +269,14 @@ void loop()
   Heltec.display->drawString(0, 0, "Sending packet: ");
   Heltec.display->drawString(90, 0, String(counter));
   Heltec.display->display();
-  
+
+  Timestamps.add_int_value(time(NULL));
   voltageSensor();
   opticalSensor();
   accSensor();
   temperatureSensor();
   vTaskDelay( _100ms );
 //  vTaskDelay( _1s );
-//  //publish_all_values();
   UBaseType_t uxHighWaterMark = uxTaskGetStackHighWaterMark( NULL );
   String mensagem = "Core:" + String((int)xPortGetCoreID()) + " --> Stack used: " + String((uint32_t)uxHighWaterMark);
   Serial.println(mensagem);
@@ -221,16 +287,7 @@ void loop()
 void Task1code( void * parameter) {
   Serial.print("Core: ");Serial.println(xPortGetCoreID());
   for(;;) {
-    tmp += Rotations.publish_values();
-    tmp += Temperatures.publish_values();
-    tmp += Accx.publish_values();
-    tmp += Accy.publish_values();
-    tmp += Accz.publish_values();
-    tmp += Voltages.publish_values();
-    sendPacket(tmp);
-//    sendPacket(String(TEMPERATURE_CODE) + " : " + "-100.0");
-    Serial.println(tmp);
-    tmp="";
+    sendJson();
     UBaseType_t uxHighWaterMark = uxTaskGetStackHighWaterMark( NULL );
     String mensagem = "Core:" + String((int)xPortGetCoreID()) + " --> Stack used: " + String((uint32_t)uxHighWaterMark);
     Serial.println(mensagem);
@@ -238,21 +295,37 @@ void Task1code( void * parameter) {
   }
 }
 
+void config_rtc(){
+  // Connect to Wi-Fi
+  Serial.print("Connecting to ");
+  Serial.println(ssid);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("");
+  Serial.println("WiFi connected.");
+  
+  // Init and get the time
+  configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+  struct tm timeinfo;
+  if(!getLocalTime(&timeinfo)){
+    Serial.println("Failed to obtain time");
+  }
+
+  //disconnect WiFi as it's no longer needed
+  WiFi.disconnect(true);
+  WiFi.mode(WIFI_OFF);
+}
+
 void temperatureSensor() {
   DS18B20.requestTemperatures();       // send the command to get temperatures
   tempC = DS18B20.getTempCByIndex(0);  // read temperature in °C
-//  sendPacket(String(TEMPERATURE_CODE) + " : " + String(tempC));
-//  delay(DELAY_);
   Temperatures.add_value(tempC);
 }
 
 void setup_imu(){
-//  Wire.begin();                
-//  // enable to measute g data
-//  Wire.beginTransmission(ADXAddress);
-//  Wire.write(Register_2D);
-//  Wire.write(8);                //measuring enable
-//  Wire.endTransmission();     // stop transmitting
   Wire.begin(4, 15, 100000); // sda, scl, clock speed
   Wire.beginTransmission(ADXAddress);
   Wire.write(0x6B);  // PWR_MGMT_1 register
@@ -263,17 +336,11 @@ void setup_imu(){
 
 void accSensor() {
   int accX = getXAcc(ADXAddress);
-//  sendPacket(String(ACC_X_CODE) + " : " + String(accX));
-//  delay(DELAY_/3);
   int accY = getYAcc(ADXAddress);
-//  sendPacket(String(ACC_Y_CODE) + " : " + String(accY));
-//  delay(DELAY_/3);
   int accZ = getZAcc(ADXAddress);
-//  sendPacket(String(ACC_Z_CODE) + " : " + String(accZ));
-//  delay(DELAY_/3);
   Accx.add_value(accX);
-  Accy.add_value(accX);
-  Accz.add_value(accX);
+  Accy.add_value(accY);
+  Accz.add_value(accZ);
 }
 
 void opticalSensor() {
@@ -285,8 +352,6 @@ void opticalSensor() {
   long endtime = starttime;
   while((endtime-starttime)<=OPT_LOOP_TIME_){
     if(dt_vel){
-//      rotations = 60000000/dt_vel;
-//      sum_rotations += 60000000/dt_vel;
       _sum_dt += dt_vel;
       _count++;
       vTaskDelay( _10ms );
@@ -294,13 +359,15 @@ void opticalSensor() {
     }
     endtime = millis();
   }
-  //sendPacket(String(ROTATIONS_CODE) + " : " + String(rotacoes));
-//  Serial.print(_count); Serial.print("$");Serial.println(_sum_dt);
+
   if(_sum_dt) 
     rotations = 60000000/(_sum_dt/_count);
   _sum_dt = 0;
-  _count = 0; 
-  Rotations.add_value(rotations);
+  _count = 0;
+  if(rotations < 10000) 
+    Rotations.add_value(rotations);
+   else
+    Rotations.add_value(-201);
 }
 
 void get_delta(){   // interrupt
@@ -319,9 +386,21 @@ void voltageSensor() {
     endtime = millis();
   }
   readRms.publish();
-  //sendPacket(String(VOLTAGE_CODE) + " : " + String(540.0*readRms.rmsVal,2));
   Voltages.add_value(540.0*readRms.rmsVal);
 }
+
+void sendJson(){
+  publish_all_values();
+  pkg_id++;
+}
+
+//int addValue(float value,JsonArray json_array){
+//  if(value!=-200 && value!=-201){
+//    json_array.add(value);
+//    return 1; 
+//  }
+//  return 0;
+//}
 
 void sendPacket(String message) {
   // send packet
@@ -334,18 +413,21 @@ void sendPacket(String message) {
 }
 
 void publish_all_values(){
+  Timestamps.publish_values();
+  vTaskDelay(_200ms);
   Rotations.publish_values();
-  delay(DELAY_);
-  Temperatures.publish_values();
-  delay(DELAY_);
-  Accx.publish_values();
-  delay(DELAY_);
-  Accy.publish_values();
-  delay(DELAY_);
-  Accz.publish_values();
-  delay(DELAY_);
+  vTaskDelay(_200ms);
   Voltages.publish_values();
-  delay(DELAY_);
+  vTaskDelay(_200ms);
+  Accx.publish_values();
+  vTaskDelay(_200ms);
+  Accy.publish_values();
+  vTaskDelay(_200ms);
+  Accz.publish_values();
+  vTaskDelay(_200ms);
+  Temperatures.publish_values();
+  vTaskDelay(_200ms);
+  counter += 7; 
 }
 
 void logo()

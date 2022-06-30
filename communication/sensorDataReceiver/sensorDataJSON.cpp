@@ -77,7 +77,6 @@ void parsePacket(String packet) {
   char buff[packet.length()];
   packet.toCharArray(buff, packet.length());
   cell = strtok(buff, ",");
-  Serial.println(packet);
   while (cell) {
 //    Serial.println(String(cell));
     cell = strtok(NULL, ",");
