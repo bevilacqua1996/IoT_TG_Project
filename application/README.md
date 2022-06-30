@@ -4,10 +4,18 @@ Camada voltada ao desenvolvimento do software que será responsável pelo proces
 ## Sensor Data API
 API responsável pelo *storage* dos dados no banco de dados e disponibilização dos mesmos via *endpoints* que serão utilizados pelo *front-end*.
 
-**OBS**: Não se esqueça de preencher as credenciais do banco de dados no arquivo *application.properties*. As credenciais podem ser encontradas na plataforma do Heroku na aplicação *sensordataapi*.
+Abaixo podemos ver um diagrama de classes que detalha a interação entre as classes e pacotes presentes na API.
+
+![diagrama_classes](https://user-images.githubusercontent.com/18063196/175832143-5de96efc-f9c8-4982-a7bc-b2ff86dc2e4f.png)
+
+
+**OBS**: As credenciais do banco de dados podem ser encontradas na plataforma do Heroku na aplicação *sensordataapi* para preenchimento do arquivo *application.properties*. Para execução na nuvem, estas variáveis já estão configuradas como variáveis de ambiente no *container* montado no Heroku.
 
 ### Deploy e Release de nova versão
-No momento a API está rodando na plataforma em nuvem do *Heroku*. Para a construção da imagem e execução do container na nuvem, sugere-se que se siga o passo a passo abaixo com os comandos necessários para o deploy da API.
+
+#### Deploy Manual
+
+No momento a API está rodando na plataforma em nuvem do *Heroku*. Para a construção da imagem de forma local e execução do container na nuvem, sugere-se que se siga o passo a passo abaixo com os comandos necessários para o deploy da API.
 
 *Pré requisitos*:
 - Heroku CLI [Download](https://devcenter.heroku.com/articles/heroku-cli#download-and-install);
@@ -22,6 +30,16 @@ heroku container:login
 heroku container:push web --app sensordataapi
 heroku container:release web --app sensordataapi
 ```
+
+#### Deploy automático
+
+Visando a automatização do processo de build e deploy também temos uma esteira automatizada de CI e CD (Continuous Integration e Continuous Deploy) integrada com o sistema do Heroku que fará uso de dois arquivos de configuração principais: *heroku.yml* e *Dockerfile*. O Arquivo de configuração do Heroku se encarregará de referenciar o diretório onde o *Dockerfile* de configuração está armazendao. O *Dockerfile*, por sua vez, é o arquivo que guarda as configurações do ambiente 'containerizado' que fará o build e execução da API na nuvem.
+
+Para execução da esteira, basta rodar o deploy a partir da plataforma do Heroku apontando para a branch na qual se deseja construir a API. Abaixo temos um diagrama de como funciona a esteira atualmente.
+
+![deploy_strategy](https://user-images.githubusercontent.com/18063196/175832026-5a401e55-5912-498d-a219-a4d22effd2dc.png)
+
+#### Comandos úteis do Heroku Client
 
 Outros comandos interessantes para gerenciamento do container na nuvem são os seguintes:
 
@@ -51,7 +69,7 @@ heroku ps
 
 *Endpoint* que faz *retrieve* de todos os dados persistidos no banco de dados até então
 
-- *Endereço*: /sensordata
+- *Endereço*: /sensorData/getAllInfo
 - *Método*: GET
 - *Retorno*: JSON com todos os objetos da entidade Sensor Data armazenados até então.
 
@@ -59,7 +77,7 @@ heroku ps
 
 *Endpoint* que adiciona novo objeto da entidade Sensor Data.
 
-- *Endereço*: /sensordata
+- *Endereço*: /sensorData/addInfo
 - *Método*: POST
 - *Parâmetros*: 
   - *Body*: JSON com atributos da entidade Sensor Data.

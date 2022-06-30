@@ -1,0 +1,112 @@
+---
+swagger: "2.0"
+info:
+  description: "yaml from sensordata API"
+  version: 1.0.0
+  title: SensorData
+  termsOfService: http://swagger.io/terms/
+  contact:
+    email: brunoenig@hotmail.com
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+host: https://sensordataapi.herokuapp.com/
+basePath: /
+tags:
+- name: sensordata
+  description: Data from sensors project
+schemes:
+- https
+- http
+paths:
+  /sensorData/addInfo:
+    post:
+      tags:
+      - sensordata
+      summary: Add a new collection of sensorData
+      operationId: addSensorData
+      consumes:
+      - application/json
+      - application/xml
+      produces:
+      - application/json
+      - application/xml
+      parameters:
+      - in: body
+        name: body
+        description: SensorData object that needs to be added
+        required: true
+        schema:
+          $ref: '#/definitions/SensorDataList'
+      responses:
+        '200':
+          description: Operacao realizada com sucesso
+          headers:
+            Location:
+              type: string
+              description: link para sensorData
+          schema:
+            type: string
+      security:
+        - sensordata_auth:
+            - write:sensordata
+
+  /sensorData/getAllInfo:
+    get:
+      tags:
+      - sensordata
+      summary: Gets all the collection of sensorData
+      operationId: getAllSensorDataInfo
+      consumes:
+        - application/json
+        - application/xml
+      produces:
+        - application/json
+        - application/xml
+      responses:
+        '200':
+          description: Operacao realizada com sucesso
+          headers:
+            Location:
+              type: string
+              description: link para sensorData
+          schema:
+            type: array
+            items:
+              $ref: object
+      security:
+        - sensordata_auth:
+            - write:sensordata
+
+securityDefinitions:
+  sensordata_auth:
+    type: oauth2
+    authorizationUrl: 'https://sensordataapi.herokuapp.com'
+    flow: implicit
+    scopes:
+      'read:sensordata': le uma entidade sensordata
+      'write:sensordata': escreve uma entidade sensordata
+
+definitions:
+
+  SensorDataList:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int32
+      code:
+        type: integer
+        format: int32
+      factor:
+        type: integer
+        format: int32
+      data:
+        type: array
+        items:
+          type: integer
+          format: int32
+
+externalDocs:
+  description: Find out more about our project
+  url: https://github.com/bevilacqua1996/IoT_TG_Project

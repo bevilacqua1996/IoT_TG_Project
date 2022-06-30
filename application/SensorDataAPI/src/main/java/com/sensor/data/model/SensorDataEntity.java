@@ -1,10 +1,13 @@
 package com.sensor.data.model;
 
+import lombok.Data;
+
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "sensor_data")
+@Data
 public class SensorDataEntity {
 	
 	@Id
@@ -35,83 +38,4 @@ public class SensorDataEntity {
 
 	private LocalDateTime date;
 
-	public Integer getId() {
-		return id;
-	}
-
-	public void setId(Integer id) {
-		this.id = id;
-	}
-
-	public long getTimestampMicrocontroler() {
-		return timestampMicrocontroler;
-	}
-
-	public void setTimestampMicrocontroler(long timestampMicrocontroler) {
-		this.timestampMicrocontroler = timestampMicrocontroler;
-	}
-
-	public long getTimestamp() {
-		return timestamp;
-	}
-
-	public void setTimestamp(long timestamp) {
-		this.timestamp = timestamp;
-	}
-
-	public LocalDateTime getDate() {
-		return date;
-	}
-
-	public void setDate(LocalDateTime date) {
-		this.date = date;
-	}
-
-	public Integer getRpm() {
-		return rpm;
-	}
-
-	public void setRpm(Integer rpm) {
-		this.rpm = rpm;
-	}
-
-	public Double getVoltage() {
-		return voltage;
-	}
-
-	public void setVoltage(Double voltage) {
-		this.voltage = voltage;
-	}
-
-	public Double getxAcc() {
-		return xAcc;
-	}
-
-	public void setxAcc(Double xAcc) {
-		this.xAcc = xAcc;
-	}
-
-	public Double getyAcc() {
-		return yAcc;
-	}
-
-	public void setyAcc(Double yAcc) {
-		this.yAcc = yAcc;
-	}
-
-	public Double getzAcc() {
-		return zAcc;
-	}
-
-	public void setzAcc(Double zAcc) {
-		this.zAcc = zAcc;
-	}
-
-	public Double getTemperature() {
-		return temperature;
-	}
-
-	public void setTemperature(Double temperature) {
-		this.temperature = temperature;
-	}
 }
