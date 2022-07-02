@@ -1,5 +1,5 @@
 #define FFT_SIZE 512  // 32/64/128/256/512
-#define sample_freq 1000
+#define sample_freq 1000 
 
 #include "MPU6050.h"
 #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
@@ -61,11 +61,7 @@ void Calibrate(){
 
 void setup() {
     // join I2C bus (I2Cdev library doesn't do this automatically)
-    #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
-        Wire.begin();
-    #elif I2CDEV_IMPLEMENTATION == I2CDEV_BUILTIN_FASTWIRE
-        Fastwire::setup(400, true);
-    #endif
+    Wire.begin(4,15,100000);
 
     // initialize serial communication
     // (38400 chosen because it works as well at 8MHz as it does at 16MHz, but
@@ -110,8 +106,9 @@ void loop() {
       n=0;
 //      display_time();
 //      t_last_cycle_us = micros();
+      while(1);
     }
-    while(micros()-t < 1000);
+    while(micros()-t < t_cycle_us);
     t=micros();
 }
 
