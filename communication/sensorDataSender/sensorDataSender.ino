@@ -43,6 +43,9 @@
 
 #define TEMPERATURE_PIN 32 // ESP32 pin GIOP33 connected to DS18B20 sensor's DQ pin
 
+#define max_rotation 10000
+#define min_rotation 10
+
 #define ARRAY_SIZE 15
 
 volatile unsigned int counter = 0;
@@ -344,14 +347,14 @@ void accSensor() {
 }
 
 void opticalSensor() {
-  //int rotacoes = opticalSensorProcess(DELAY_, OPTICAL_PIN);
-  int rotations=0;
+  //int rotacoes = opticalSensorProcess(DELAY_, OPTICAL_PIN)
+  unsigned long rotations=0;
   unsigned long _sum_dt=0;
   int _count=0;
   long starttime = millis();
   long endtime = starttime;
   while((endtime-starttime)<=OPT_LOOP_TIME_){
-    if(dt_vel){
+    if(dt_vel>0 && micros()-timer_aux < 1000000/min_rotation){
       _sum_dt += dt_vel;
       _count++;
       vTaskDelay( _10ms );
@@ -364,10 +367,10 @@ void opticalSensor() {
     rotations = 60000000/(_sum_dt/_count);
   _sum_dt = 0;
   _count = 0;
-  if(rotations < 10000) 
+  if(rotations < max_rotation) 
     Rotations.add_value(rotations);
    else
-    Rotations.add_value(-201);
+    Rotations.add_value(-200);
 }
 
 void get_delta(){   // interrupt
