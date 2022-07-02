@@ -59,7 +59,7 @@ void buildAndSendLoRaData(){
     Serial.println(m);
     tempo = millis();
     if(WiFi.status()== WL_CONNECTED)
-      sendJson(packets[i]);
+      httpResponseCode = sendJson(packets[i]);
     else
       httpResponseCode = 500;
     displayData(httpResponseCode, packets[i]);
@@ -78,9 +78,10 @@ void displayData(int httpResponseCode, String json){
     int id = doc["id"];
     int code = doc["code"];
     int value = doc["data"][0];
+    int factor = doc["factor"];
 
     //Serial.print("Value: ");Serial.println(value);
-    String data_str = String(value);
+    String data_str = String(value / float(factor));
     String type_str;
     if(code == ROTATIONS_CODE) {
       type_str = "Rotations";
@@ -93,10 +94,10 @@ void displayData(int httpResponseCode, String json){
     } else if(code == ACC_Z_CODE) {
       type_str = "Zacc";
     } else if(code == TEMPERATURE_CODE) {
-      type_str = "Temp. ºC:";
+      type_str = "Temp. ºC";
     } else if(code == TIME_CODE){
-      type_str = "Time: ";
-      String hms = String((hour(value)-3)%24) + ":" + String(minute(value)) + ":" + String(second(value));
+      type_str = "Time";
+      String hms = String((24+hour(value)-3)%24) + ":" + String(minute(value)) + ":" + String(second(value));
       data_str = hms;
     }
     
