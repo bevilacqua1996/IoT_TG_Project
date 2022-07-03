@@ -219,8 +219,6 @@ void setup()
 {
   attachInterrupt(digitalPinToInterrupt(OPTICAL_PIN), get_delta, FALLING);
 
-  config_rtc();
-
   xTaskCreatePinnedToCore(
     Task1code, /* Function to implement the task */
     "Task1", /* Name of the task */
@@ -239,8 +237,6 @@ void setup()
   
   nextLoop = micros() + LPERIOD; // Set the loop timer variable for the next loop interval.
 
-//  setup_imu();
-
   DS18B20.begin();    // initialize the DS18B20 sensor
   
    //WIFI Kit series V1 not support Vext control
@@ -250,13 +246,16 @@ void setup()
   Heltec.display->init();
   Heltec.display->flipScreenVertically();  
   Heltec.display->setFont(ArialMT_Plain_10);
-  //logo();
+  logo();
   delay(1500);
   Heltec.display->clear();
   
   Heltec.display->drawString(0, 0, "Heltec.LoRa Initial success!");
   Heltec.display->display();
   delay(1000);
+
+  config_rtc();
+  //calibrateAcc();
 
   //pinMode(OPTICAL_PIN, INPUT);
   LoRa.setSpreadingFactor(7);
@@ -338,9 +337,13 @@ void setup_imu(){
 }
 
 void accSensor() {
-  int accX = getXAcc(ADXAddress);
-  int accY = getYAcc(ADXAddress);
-  int accZ = getZAcc(ADXAddress);
+  fft_scan();
+  float A_172hz = get_amplitude_at_freq(172);
+  Serial.print("Amplitude: "); Serial.println(A_172hz);
+  
+  float accX = getXAcc();
+  float accY = getYAcc();
+  float accZ = getZAcc();
   Accx.add_value(accX);
   Accy.add_value(accY);
   Accz.add_value(accZ);
