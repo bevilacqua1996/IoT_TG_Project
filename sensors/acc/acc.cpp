@@ -8,7 +8,7 @@ double Xg,Yg,Zg;
 int getXAcc(int adxAddress)
 {
   //--------------X
-  Wire.beginTransmission(adxAddress); // transmit to device
+ /* Wire.beginTransmission(adxAddress); // transmit to device
   Wire.write(Register_X0);
   Wire.write(Register_X1);
   Wire.endTransmission();
@@ -20,15 +20,24 @@ int getXAcc(int adxAddress)
     X1=X1<<8;
     X_out=X0+X1;   
   }
-  Xg=X_out/256.0;
+  Xg=X_out/256.0; */
+  
+  Wire.beginTransmission(adxAddress); // transmit to device
+  Wire.write(Register_X1);
+  Wire.endTransmission();
+  Wire.requestFrom(adxAddress,2,true);
+  if(Wire.available()<=2)   
+  {
+      X_out = Wire.read() << 8 | Wire.read();
+  }
 
-  return Xg;
+  return X_out;
 }
 
 int getYAcc(int adxAddress)
 {
   //------------------Y
-  Wire.beginTransmission(adxAddress); // transmit to device
+  /* Wire.beginTransmission(adxAddress); // transmit to device
   Wire.write(Register_Y0);
   Wire.write(Register_Y1);
   Wire.endTransmission();
@@ -40,15 +49,24 @@ int getYAcc(int adxAddress)
     Y1=Y1<<8;
     Y_out=Y0+Y1;
   }
-  Yg=Y_out/256.0;
+  Yg=Y_out/256.0; */
+  
+  Wire.beginTransmission(adxAddress); // transmit to device
+  Wire.write(Register_Y1);
+  Wire.endTransmission();
+  Wire.requestFrom(adxAddress,2,true);
+  if(Wire.available()<=2)   
+  {
+      Y_out = Wire.read() << 8 | Wire.read();
+  }
 
-  return Yg;
+  return Y_out;
 }
 
 int getZAcc(int adxAddress)
 {
   //------------------Z
-  Wire.beginTransmission(adxAddress); // transmit to device
+/*   Wire.beginTransmission(adxAddress); // transmit to device
   Wire.write(Register_Z0);
   Wire.write(Register_Z1);
   Wire.endTransmission();
@@ -61,7 +79,16 @@ int getZAcc(int adxAddress)
     Z_out=Z0+Z1;
   }
   //
-  Zg=Z_out/256.0;
+  Zg=Z_out/256.0; */
   
-  return Zg;
+  Wire.beginTransmission(adxAddress); // transmit to device
+  Wire.write(Register_Z1);
+  Wire.endTransmission();
+  Wire.requestFrom(adxAddress,2,true);
+  if(Wire.available()<=2)   
+  {
+      Z_out = Wire.read() << 8 | Wire.read();
+  }
+  
+  return Z_out;
 }
