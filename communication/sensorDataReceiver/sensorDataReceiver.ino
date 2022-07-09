@@ -14,9 +14,9 @@
 #define TIME_CODE 0
 #define ROTATIONS_CODE 1
 #define VOLTAGE_CODE 2
-#define ACC_X_CODE 3
-#define ACC_Y_CODE 4
-#define ACC_Z_CODE 5
+#define ACC_A1_CODE 3
+#define ACC_A2_CODE 4
+#define ACC_A3_CODE 5
 #define TEMPERATURE_CODE 6
 
 #define NUM_OF_PACKETS 7
@@ -87,12 +87,12 @@ void displayData(int httpResponseCode, String json){
       type_str = "Rotations";
     } else if(code == VOLTAGE_CODE) {
       type_str = "Voltage";
-    } else if(code == ACC_X_CODE) {
-      type_str = "Xacc";
-    } else if(code == ACC_Y_CODE) {
-      type_str = "Yacc";
-    } else if(code == ACC_Z_CODE) {
-      type_str = "Zacc";
+    } else if(code == ACC_A1_CODE) {
+      type_str = "Acc f1";
+    } else if(code == ACC_A2_CODE) {
+      type_str = "Acc f2";
+    } else if(code == ACC_A3_CODE) {
+      type_str = "Acc f3";
     } else if(code == TEMPERATURE_CODE) {
       type_str = "Temp. ºC";
     } else if(code == TIME_CODE){
@@ -200,14 +200,6 @@ void setup() {
 }
 
 void loop() {
-//  int packetSize = LoRa.parsePacket();
-//  if (packetSize) {
-//    tempo = millis();
-//    Serial.print("Packet size: ");Serial.println(packetSize); 
-//    cbk(packetSize); 
-//    Serial.print("Loop time: ");  Serial.println(millis()-tempo);  /* Serial.println(tempo); */
-//    tempo = millis();
-//  }
   delay(10);
 
   if(canSendPacket){

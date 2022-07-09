@@ -17,21 +17,13 @@
 #include <WiFi.h>
 #include <WiFiUDP.h>
 
-//#define ROTATIONS_CODE 1
-//#define VOLTAGE_CODE 2
-//#define ACC_X_CODE 3
-//#define ACC_Y_CODE 4
-//#define ACC_Z_CODE 5
-//#define TEMPERATURE_CODE 6
-
 #define TIME_CODE 0
 #define ROTATIONS_CODE 1
 #define VOLTAGE_CODE 2
-#define ACC_X_CODE 3
-#define ACC_Y_CODE 4
-#define ACC_Z_CODE 5
+#define ACC_A1_CODE 3
+#define ACC_A2_CODE 4
+#define ACC_A3_CODE 5
 #define TEMPERATURE_CODE 6
-//#define FACTORS_CODE 'F'
 
 #define BAND    915E6  //you can set band here directly,e.g. 868E6,915E6
 
@@ -210,9 +202,9 @@ class SensorValues{
 volatile SensorValues Timestamps = SensorValues(ARRAY_SIZE,1,TIME_CODE);
 volatile SensorValues Rotations = SensorValues(ARRAY_SIZE,1000,ROTATIONS_CODE);
 volatile SensorValues Temperatures = SensorValues(ARRAY_SIZE,100,TEMPERATURE_CODE);
-volatile SensorValues Accx = SensorValues(ARRAY_SIZE,1000,ACC_X_CODE);
-volatile SensorValues Accy = SensorValues(ARRAY_SIZE,1000,ACC_Y_CODE);
-volatile SensorValues Accz = SensorValues(ARRAY_SIZE,1000,ACC_Z_CODE);
+volatile SensorValues AccA1 = SensorValues(ARRAY_SIZE,1000,ACC_A1_CODE);
+volatile SensorValues AccA2 = SensorValues(ARRAY_SIZE,1000,ACC_A2_CODE);
+volatile SensorValues AccA3 = SensorValues(ARRAY_SIZE,1000,ACC_A3_CODE);
 volatile SensorValues Voltages = SensorValues(ARRAY_SIZE,1000,VOLTAGE_CODE);
 
 void setup()
@@ -338,15 +330,16 @@ void setup_imu(){
 
 void accSensor() {
   fft_scan();
-  float A_172hz = get_amplitude_at_freq(172);
-  Serial.print("Amplitude: "); Serial.println(A_172hz);
+  float fp = get_pass_pole_freq(); 
+  float A1 = get_amplitude_at_freq(60);
+  //float A1 = get_amplitude_at_2fl();
+  float A2 = get_amplitude_at_lateral_band(120,120/3)[0];
+  float A3 = get_amplitude_at_lateral_band(120,fp)[0];
+  Serial.print("Amplitude: "); Serial.println(A1);
   
-  float accX = getXAcc();
-  float accY = getYAcc();
-  float accZ = getZAcc();
-  Accx.add_value(accX);
-  Accy.add_value(accY);
-  Accz.add_value(accZ);
+  AccA1.add_value(A1);
+  AccA2.add_value(A2);
+  AccA3.add_value(A3);
 }
 
 void opticalSensor() {
@@ -425,11 +418,11 @@ void publish_all_values(){
   vTaskDelay(_200ms);
   Voltages.publish_values();
   vTaskDelay(_200ms);
-  Accx.publish_values();
+  AccA1.publish_values();
   vTaskDelay(_200ms);
-  Accy.publish_values();
+  AccA2.publish_values();
   vTaskDelay(_200ms);
-  Accz.publish_values();
+  AccA3.publish_values();
   vTaskDelay(_200ms);
   Temperatures.publish_values();
   vTaskDelay(_200ms);
