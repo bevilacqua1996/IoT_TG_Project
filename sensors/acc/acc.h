@@ -1,6 +1,7 @@
 #ifndef ACC_H
 #define ACC_H
 
+<<<<<<< HEAD
 #define FFT_SIZE 512  // 32/64/128/256/512
 #define sample_freq 1000 
 #define Register_2D 0x6B
@@ -38,5 +39,4 @@ float get_amplitude_at_freq(float freq);
 float get_amplitude_at_2fl();
 float get_pass_pole_freq();
 float* get_amplitude_at_lateral_band(float fcentral, float delta);
-
 #endif

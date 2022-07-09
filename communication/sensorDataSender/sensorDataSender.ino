@@ -6,7 +6,6 @@
 
 #include <heltec.h>
 #include "images.h"
-#include <opticalSensorReading.h>
 #include <TrueRMSNew.h>
 #include <acc.h>
 #include <Wire.h>
