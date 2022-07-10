@@ -5,9 +5,9 @@ public enum DataCodeEnum {
     TIMESTAMP(0),
     RPM(1),
     VOLTAGE(2),
-    ACC_X(3),
-    ACC_Y(4),
-    ACC_Z(5),
+    ACC_A1(3),
+    ACC_A2(4),
+    ACC_A3(5),
     TEMPERATURE(6);
 
     private int code;

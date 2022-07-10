@@ -25,22 +25,22 @@ public class SensorDataEntitiesDTO extends ArrayList<SensorDataEntity> {
                 sensorDataEntity.setVoltage(data / sensorDataList.getFactor().doubleValue());
                 add(sensorDataEntity);
             }
-        } else if(sensorDataList.getCode() == DataCodeEnum.ACC_X.getCode()) {
+        } else if(sensorDataList.getCode() == DataCodeEnum.ACC_A1.getCode()) {
             for (Integer data : sensorDataList.getData()) {
                 SensorDataEntity sensorDataEntity = new SensorDataEntity();
-                sensorDataEntity.setXAcc(data / sensorDataList.getFactor().doubleValue());
+                sensorDataEntity.setA1Acc(data / sensorDataList.getFactor().doubleValue());
                 add(sensorDataEntity);
             }
-        } else if(sensorDataList.getCode() == DataCodeEnum.ACC_Y.getCode()) {
+        } else if(sensorDataList.getCode() == DataCodeEnum.ACC_A2.getCode()) {
             for (Integer data : sensorDataList.getData()) {
                 SensorDataEntity sensorDataEntity = new SensorDataEntity();
-                sensorDataEntity.setYAcc(data / sensorDataList.getFactor().doubleValue());
+                sensorDataEntity.setA2Acc(data / sensorDataList.getFactor().doubleValue());
                 add(sensorDataEntity);
             }
-        } else if(sensorDataList.getCode() == DataCodeEnum.ACC_Z.getCode()) {
+        } else if(sensorDataList.getCode() == DataCodeEnum.ACC_A3.getCode()) {
             for (Integer data : sensorDataList.getData()) {
                 SensorDataEntity sensorDataEntity = new SensorDataEntity();
-                sensorDataEntity.setZAcc(data / sensorDataList.getFactor().doubleValue());
+                sensorDataEntity.setA3Acc(data / sensorDataList.getFactor().doubleValue());
                 add(sensorDataEntity);
             }
         } else if(sensorDataList.getCode() == DataCodeEnum.TEMPERATURE.getCode()) {
@@ -65,17 +65,17 @@ public class SensorDataEntitiesDTO extends ArrayList<SensorDataEntity> {
             for (int i=0; i<sensorDataList.getData().size(); i++) {
                 get(i).setVoltage(sensorDataList.getData().get(i) / sensorDataList.getFactor().doubleValue());
             }
-        } else if(sensorDataList.getCode() == DataCodeEnum.ACC_X.getCode()) {
+        } else if(sensorDataList.getCode() == DataCodeEnum.ACC_A1.getCode()) {
             for (int i=0; i<sensorDataList.getData().size(); i++) {
-                get(i).setXAcc(sensorDataList.getData().get(i) / sensorDataList.getFactor().doubleValue());
+                get(i).setA1Acc(sensorDataList.getData().get(i) / sensorDataList.getFactor().doubleValue());
             }
-        } else if(sensorDataList.getCode() == DataCodeEnum.ACC_Y.getCode()) {
+        } else if(sensorDataList.getCode() == DataCodeEnum.ACC_A2.getCode()) {
             for (int i=0; i<sensorDataList.getData().size(); i++) {
-                get(i).setYAcc(sensorDataList.getData().get(i) / sensorDataList.getFactor().doubleValue());
+                get(i).setA2Acc(sensorDataList.getData().get(i) / sensorDataList.getFactor().doubleValue());
             }
-        } else if(sensorDataList.getCode() == DataCodeEnum.ACC_Z.getCode()) {
+        } else if(sensorDataList.getCode() == DataCodeEnum.ACC_A3.getCode()) {
             for (int i=0; i<sensorDataList.getData().size(); i++) {
-                get(i).setZAcc(sensorDataList.getData().get(i) / sensorDataList.getFactor().doubleValue());
+                get(i).setA3Acc(sensorDataList.getData().get(i) / sensorDataList.getFactor().doubleValue());
             }
         } else if(sensorDataList.getCode() == DataCodeEnum.TEMPERATURE.getCode()) {
             for (int i=0; i<sensorDataList.getData().size(); i++) {

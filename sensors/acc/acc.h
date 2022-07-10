@@ -1,7 +1,6 @@
 #ifndef ACC_H
 #define ACC_H
 
-<<<<<<< HEAD
 #define FFT_SIZE 512  // 32/64/128/256/512
 #define sample_freq 1000 
 #define Register_2D 0x6B
