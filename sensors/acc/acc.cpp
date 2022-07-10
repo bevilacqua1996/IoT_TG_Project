@@ -94,7 +94,7 @@ float get_amplitude_at_freq(float freq){
 }
 
 float get_amplitude_at_2fl(){
-	return get_amplitude_at_freq(line_freq);
+	return get_amplitude_at_freq(2*line_freq);
 }
 
 float get_pass_pole_freq(){

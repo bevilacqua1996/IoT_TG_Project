@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -52,7 +53,12 @@ public class SensorDataServiceImpl implements SensorDataService {
 	private void persistSensorData() {
 		for(SensorDataEntity sensorDataEntity : sensorDataEntities) {
 			sensorDataEntity.setTimestamp(LocalDateTime.now().toInstant(ZoneOffset.of(GMT_BR)).toEpochMilli());
-			sensorDataEntity.setDate(LocalDateTime.now(ZoneId.of(REGION)));
+
+			LocalDateTime dataMedicao = new Date(sensorDataEntity.getTimestamp()).toInstant().
+					atZone(ZoneId.of(REGION)).
+					toLocalDateTime();
+
+			sensorDataEntity.setDate(dataMedicao);
 			sensorDataRepo.save(sensorDataEntity);
 		}
 	}

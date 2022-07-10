@@ -55,31 +55,59 @@ public class SensorDataEntitiesDTO extends ArrayList<SensorDataEntity> {
     public void updateSensorDataEntities(SensorDataList sensorDataList) {
         if(sensorDataList.getCode() == DataCodeEnum.TIMESTAMP.getCode()) {
             for(int i=0; i<sensorDataList.getData().size(); i++) {
-                get(i).setTimestampMicrocontroler(sensorDataList.getData().get(i) / sensorDataList.getFactor());
+                try {
+                    get(i).setTimestampMicrocontroler(sensorDataList.getData().get(i) / sensorDataList.getFactor());
+                } catch (IndexOutOfBoundsException ex) {
+                    break;
+                }
             }
         } else if(sensorDataList.getCode() == DataCodeEnum.RPM.getCode()) {
             for (int i=0; i<sensorDataList.getData().size(); i++) {
-                get(i).setRpm(sensorDataList.getData().get(i) / sensorDataList.getFactor());
+                try {
+                    get(i).setRpm(sensorDataList.getData().get(i) / sensorDataList.getFactor());
+                } catch (IndexOutOfBoundsException ex) {
+                    break;
+                }
             }
         } else if(sensorDataList.getCode() == DataCodeEnum.VOLTAGE.getCode()) {
             for (int i=0; i<sensorDataList.getData().size(); i++) {
-                get(i).setVoltage(sensorDataList.getData().get(i) / sensorDataList.getFactor().doubleValue());
+                try {
+                    get(i).setVoltage(sensorDataList.getData().get(i) / sensorDataList.getFactor().doubleValue());
+                } catch (IndexOutOfBoundsException ex) {
+                    break;
+                }
             }
         } else if(sensorDataList.getCode() == DataCodeEnum.ACC_A1.getCode()) {
             for (int i=0; i<sensorDataList.getData().size(); i++) {
-                get(i).setA1Acc(sensorDataList.getData().get(i) / sensorDataList.getFactor().doubleValue());
+                try {
+                    get(i).setA1Acc(sensorDataList.getData().get(i) / sensorDataList.getFactor().doubleValue());
+                } catch (IndexOutOfBoundsException ex) {
+                    break;
+                }
             }
         } else if(sensorDataList.getCode() == DataCodeEnum.ACC_A2.getCode()) {
             for (int i=0; i<sensorDataList.getData().size(); i++) {
-                get(i).setA2Acc(sensorDataList.getData().get(i) / sensorDataList.getFactor().doubleValue());
+                try {
+                    get(i).setA2Acc(sensorDataList.getData().get(i) / sensorDataList.getFactor().doubleValue());
+                } catch (IndexOutOfBoundsException ex) {
+                    break;
+                }
             }
         } else if(sensorDataList.getCode() == DataCodeEnum.ACC_A3.getCode()) {
             for (int i=0; i<sensorDataList.getData().size(); i++) {
-                get(i).setA3Acc(sensorDataList.getData().get(i) / sensorDataList.getFactor().doubleValue());
+                try {
+                    get(i).setA3Acc(sensorDataList.getData().get(i) / sensorDataList.getFactor().doubleValue());
+                } catch (IndexOutOfBoundsException ex) {
+                    break;
+                }
             }
         } else if(sensorDataList.getCode() == DataCodeEnum.TEMPERATURE.getCode()) {
             for (int i=0; i<sensorDataList.getData().size(); i++) {
-                get(i).setTemperature(sensorDataList.getData().get(i) / sensorDataList.getFactor().doubleValue());
+                try {
+                    get(i).setTemperature(sensorDataList.getData().get(i) / sensorDataList.getFactor().doubleValue());
+                } catch (IndexOutOfBoundsException ex) {
+                    break;
+                }
             }
         }
     }

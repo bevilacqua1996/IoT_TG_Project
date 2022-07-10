@@ -284,7 +284,7 @@ void Task1code( void * parameter) {
     UBaseType_t uxHighWaterMark = uxTaskGetStackHighWaterMark( NULL );
     String mensagem = "Core:" + String((int)xPortGetCoreID()) + " --> Stack used: " + String((uint32_t)uxHighWaterMark);
     Serial.println(mensagem);
-    vTaskDelay( _5s );
+    vTaskDelay( _10s );
   }
 }
 
@@ -330,9 +330,9 @@ void setup_imu(){
 void accSensor() {
   fft_scan();
   float fp = get_pass_pole_freq(); 
-  float A1 = get_amplitude_at_freq(60);
-  //float A1 = get_amplitude_at_2fl();
-  float A2 = get_amplitude_at_lateral_band(120,120/3)[0];
+  //float A1 = get_amplitude_at_freq(60);
+  float A1 = get_amplitude_at_2fl();
+  float A2 = get_amplitude_at_lateral_band(120,60/3)[0];
   float A3 = get_amplitude_at_lateral_band(120,fp)[0];
   Serial.print("Amplitude: "); Serial.println(A1);
   
