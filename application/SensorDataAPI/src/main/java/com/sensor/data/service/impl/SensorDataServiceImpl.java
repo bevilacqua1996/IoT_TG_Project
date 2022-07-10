@@ -54,7 +54,7 @@ public class SensorDataServiceImpl implements SensorDataService {
 		for(SensorDataEntity sensorDataEntity : sensorDataEntities) {
 			sensorDataEntity.setTimestamp(LocalDateTime.now().toInstant(ZoneOffset.of(GMT_BR)).toEpochMilli());
 
-			LocalDateTime dataMedicao = new Date(sensorDataEntity.getTimestampMicrocontroler()).toInstant().
+			LocalDateTime dataMedicao = new Date(sensorDataEntity.getTimestampMicrocontroler() * 1000).toInstant().
 					atZone(ZoneId.of(REGION)).
 					toLocalDateTime();
 
