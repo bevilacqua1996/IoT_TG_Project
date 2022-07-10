@@ -18,13 +18,13 @@ public class SensorDataEntity {
 
 	private Double voltage;
 
-	@Column(name = "a1_acc")
+	@Column(name = "acc_a1")
 	private Double a1Acc;
 
-	@Column(name = "a2_acc")
+	@Column(name = "acc_a2")
 	private Double a2Acc;
 
-	@Column(name = "a3_acc")
+	@Column(name = "acc_a3")
 	private Double a3Acc;
 
 	@Column(name = "temperature")
