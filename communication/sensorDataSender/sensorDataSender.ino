@@ -15,6 +15,7 @@
 #include <NTPClient.h>
 #include <WiFi.h>
 #include <WiFiUDP.h>
+#include <SensorValues.h>
 
 #define TIME_CODE 0
 #define ROTATIONS_CODE 1
@@ -82,7 +83,7 @@ unsigned long last_time = 0;
 int ADXAddress = 0x68;
 
 const TickType_t _1s = 1000 / portTICK_PERIOD_MS;
-const TickType_t _1ms = 1 / portTICK_PERIOD_MS;
+//const TickType_t _1ms = 1 / portTICK_PERIOD_MS;
 const TickType_t _10ms = 10 / portTICK_PERIOD_MS;
 const TickType_t _100ms = 100 / portTICK_PERIOD_MS;
 const TickType_t _200ms = 200 / portTICK_PERIOD_MS;
@@ -90,113 +91,6 @@ const TickType_t _5s = 5000 / portTICK_PERIOD_MS;
 const TickType_t _10s = 10000 / portTICK_PERIOD_MS; 
 TaskHandle_t Task1;
 static String tmp="";
-
-class SensorValues{
-  public:
-    SensorValues(unsigned short array_size, unsigned short factor, short code){
-      this->array_size = array_size;
-      this->values = new int[array_size];
-//      this->timestamps = new uint32_t[array_size];
-      std::fill_n(this->values,array_size,-200);
-//      std::fill_n(this->timestamps,array_size,-200);
-      this->factor = factor;
-      this->code = code;
-    }
-    
-    void add_value(float value) volatile{
-      if(!is_reading){
-        if(this->index < this->array_size){
-          is_writing = 1;
-          this->values[index] = value*factor;
-//          this->timestamps[index] = time(NULL);
-          this->index++;
-          is_writing = 0;
-        }
-      }
-    }
-
-    void add_int_value(uint32_t value) volatile{
-      if(!is_reading){
-        if(this->index < this->array_size){
-          is_writing = 1;
-          this->values[index] = value*factor;
-          this->index++;
-          is_writing = 0;
-        }
-      }
-    }
-  
-    float get_value_at_index(short index) volatile{
-      return this->values[index];
-    }
-
-//    uint32_t get_timestamp_at_index(short index) volatile{
-//      return this->timestamps[index];
-//    }
-
-    short get_factor() volatile{
-      return this->factor;
-    }
-
-    void clear_array() volatile{
-      std::fill_n(values,array_size,-200);
-      index=0;
-    }
-
-    String publish_values() volatile{
-      String str_values = "";
-      while(is_writing){
-        vTaskDelay( _1ms );
-        //taskYIELD();
-      }
-      is_reading = 1;
-      DynamicJsonDocument msg(1024);
-      msg["id"] = pkg_id;
-      msg["code"] = this->code;
-      msg["factor"] = this->factor;
-      JsonArray var_data = msg.createNestedArray("data");
-//      JsonArray tStamps = msg.createNestedArray("ts");
-      for(int i=0;i<this->array_size;i++){
-        if(this->values[i]==-200)
-          break;
-        var_data.add(this->values[i]);
-//        tStamps.add(this->timestamps[i]);
-        this->values[i]=-200;
-      }
-      this->index = 0;
-
-      String json;
-      serializeJson(msg, json);
-      send_packet(json);
-      Serial.println(json);
-
-      Serial.print("Memory usage: "); Serial.println(msg.memoryUsage());
-      Serial.print("Sensor Json size: ");Serial.println(json.length());
-      
-      is_reading = 0;
-      return json;
-      //Serial.println(str_values);
-    }
-
-    void send_packet(String message) volatile{
-      // send packet
-      LoRa.beginPacket();
-      LoRa.setTxPower(14,RF_PACONFIG_PASELECT_PABOOST);
-      LoRa.print(message);
-      LoRa.endPacket(true);
-//      counter++;
-    }
-    
-    volatile bool is_reading=0;
-    volatile bool is_writing=1;
-  private:
-    volatile unsigned short index;
-    volatile int *values;
-//    volatile uint32_t* timestamps;
-    volatile unsigned short array_size;
-    volatile unsigned short factor;
-    char code;
-};
 
 volatile SensorValues Timestamps = SensorValues(ARRAY_SIZE,1,TIME_CODE);
 volatile SensorValues Rotations = SensorValues(ARRAY_SIZE,1000,ROTATIONS_CODE);
@@ -411,19 +305,19 @@ void sendPacket(String message) {
 }
 
 void publish_all_values(){
-  Timestamps.publish_values();
+  Timestamps.publish_values(pkg_id);
   vTaskDelay(_200ms);
-  Rotations.publish_values();
+  Rotations.publish_values(pkg_id);
   vTaskDelay(_200ms);
-  Voltages.publish_values();
+  Voltages.publish_values(pkg_id);
   vTaskDelay(_200ms);
-  AccA1.publish_values();
+  AccA1.publish_values(pkg_id);
   vTaskDelay(_200ms);
-  AccA2.publish_values();
+  AccA2.publish_values(pkg_id);
   vTaskDelay(_200ms);
-  AccA3.publish_values();
+  AccA3.publish_values(pkg_id);
   vTaskDelay(_200ms);
-  Temperatures.publish_values();
+  Temperatures.publish_values(pkg_id);
   vTaskDelay(_200ms);
   counter += 7; 
 }
