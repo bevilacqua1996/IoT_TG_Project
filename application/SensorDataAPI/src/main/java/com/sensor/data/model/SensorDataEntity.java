@@ -18,14 +18,14 @@ public class SensorDataEntity {
 
 	private Double voltage;
 
-	@Column(name = "x_acc")
-	private Double xAcc;
+	@Column(name = "acc_a1")
+	private Double a1Acc;
 
-	@Column(name = "y_acc")
-	private Double yAcc;
+	@Column(name = "acc_a2")
+	private Double a2Acc;
 
-	@Column(name = "z_acc")
-	private Double zAcc;
+	@Column(name = "acc_a3")
+	private Double a3Acc;
 
 	@Column(name = "temperature")
 	private Double temperature;

@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -20,7 +21,7 @@ public class SensorDataServiceImpl implements SensorDataService {
 	@Autowired
 	private SensorDataRepository sensorDataRepo;
 
-	private Integer key = null;
+	private Integer key = -1;
 
 	private SensorDataEntitiesDTO sensorDataEntities = new SensorDataEntitiesDTO();
 
@@ -35,7 +36,7 @@ public class SensorDataServiceImpl implements SensorDataService {
 
 	@Override
 	public void addSensorDataList(SensorDataList sensorDataList) {
-		if(sensorDataList.getId() != key) {
+		if(sensorDataList.getId().intValue() != key.intValue()) {
 			if(sensorDataEntities.isEmpty()) {
 				sensorDataEntities.buildSensorDataEntities(sensorDataList);
 			} else {
@@ -52,7 +53,15 @@ public class SensorDataServiceImpl implements SensorDataService {
 	private void persistSensorData() {
 		for(SensorDataEntity sensorDataEntity : sensorDataEntities) {
 			sensorDataEntity.setTimestamp(LocalDateTime.now().toInstant(ZoneOffset.of(GMT_BR)).toEpochMilli());
-			sensorDataEntity.setDate(LocalDateTime.now(ZoneId.of(REGION)));
+
+			long timestamp = sensorDataEntity.getTimestampMicrocontroler() == 0 ?
+					sensorDataEntity.getTimestamp() : sensorDataEntity.getTimestampMicrocontroler() * 1000;
+
+			LocalDateTime dataMedicao = new Date(timestamp).toInstant().
+					atZone(ZoneId.of(REGION)).
+					toLocalDateTime();
+
+			sensorDataEntity.setDate(dataMedicao);
 			sensorDataRepo.save(sensorDataEntity);
 		}
 	}

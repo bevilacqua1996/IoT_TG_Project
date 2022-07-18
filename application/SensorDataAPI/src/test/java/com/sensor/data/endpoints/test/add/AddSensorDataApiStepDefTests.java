@@ -1,4 +1,4 @@
-package com.sensor.data.endpoints.test;
+package com.sensor.data.endpoints.test.add;
 
 import com.sensor.data.SensorDataApiApplication;
 import com.sensor.data.api.model.SensorDataList;
