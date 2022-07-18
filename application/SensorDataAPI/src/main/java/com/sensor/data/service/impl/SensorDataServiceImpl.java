@@ -21,7 +21,7 @@ public class SensorDataServiceImpl implements SensorDataService {
 	@Autowired
 	private SensorDataRepository sensorDataRepo;
 
-	private Integer key = null;
+	private Integer key = -1;
 
 	private SensorDataEntitiesDTO sensorDataEntities = new SensorDataEntitiesDTO();
 
@@ -36,7 +36,7 @@ public class SensorDataServiceImpl implements SensorDataService {
 
 	@Override
 	public void addSensorDataList(SensorDataList sensorDataList) {
-		if(sensorDataList.getId() != key) {
+		if(sensorDataList.getId().intValue() != key.intValue()) {
 			if(sensorDataEntities.isEmpty()) {
 				sensorDataEntities.buildSensorDataEntities(sensorDataList);
 			} else {
