@@ -18,4 +18,4 @@ Acesse a camada de [*sensors*](https://github.com/bevilacqua1996/IoT_TG_Project/
 
 # Diagrama Ilustrativo da Arquitetura
 
-![TG_Architecture drawio](https://user-images.githubusercontent.com/18063196/156252361-c78931d4-b83c-4325-9fab-f3ea9a68c88f.png)
+![TG_Architecture](https://user-images.githubusercontent.com/18063196/179433003-e6e992b1-07f1-4c70-98df-da0826977f34.png)
